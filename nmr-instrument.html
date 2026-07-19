@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核磁共振波谱仪器 — 交互式数字增强资源</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --accent: #2e86c1;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #dce1e6;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; }
+  .header { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; padding:28px 40px; text-align:center; }
+  .header h1 { font-size:28px; font-weight:700; letter-spacing:1px; }
+  .header .watermark { font:bold 28px/1 'SimHei','Microsoft YaHei',sans-serif; color:#111; letter-spacing:3px; flex-shrink:0; }
+
+  .tabs { display:flex; background:#e8ecf1; border-bottom:2px solid var(--border); overflow-x:auto; }
+  .tab { padding:14px 22px; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; user-select:none; }
+  .tab:hover { color:var(--primary); background:rgba(46,134,193,.06); }
+  .tab.active { color:var(--primary); border-bottom-color:var(--accent); background:var(--card); }
+
+  .panel { display:none; padding:30px 36px; max-width:1100px; margin:0 auto; }
+  .panel.active { display:block; }
+  .section-title { font-size:20px; font-weight:700; color:var(--primary); margin-bottom:18px; padding-bottom:8px; border-bottom:2px solid var(--accent); }
+  .section-subtitle { font-size:16px; font-weight:600; color:var(--accent); margin:16px 0 10px; }
+  .card { background:var(--card); border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,.06); padding:24px; margin-bottom:20px; border:1px solid var(--border); }
+  canvas { display:block; margin:0 auto; border-radius:8px; background:#0d1b2a; }
+  .canvas-label { text-align:center; font-size:13px; color:var(--muted); margin-top:6px; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; align-items:center; justify-content:center; }
+  .btn { padding:8px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--primary); }
+  .btn-outline { background:transparent; border:2px solid var(--accent); color:var(--accent); }
+  .btn-outline:hover { background:var(--accent); color:#fff; }
+  .btn-outline.active { background:var(--accent); color:#fff; }
+
+  .slider-group { display:flex; align-items:center; gap:10px; }
+  .slider-group label { font-size:13px; font-weight:600; min-width:100px; text-align:right; }
+  .slider-group input[type=range] { flex:1; max-width:220px; }
+  .slider-group .val { font-size:13px; color:var(--accent); min-width:70px; font-weight:700; }
+
+  .info-box { background:#eaf2f8; border-left:4px solid var(--accent); padding:14px 18px; border-radius:0 8px 8px 0; margin:14px 0; font-size:14px; }
+  .info-box strong { color:var(--primary); }
+  .warn-box { background:#fef9e7; border-left:4px solid var(--warning); padding:14px 18px; border-radius:0 8px 8px 0; margin:14px 0; font-size:14px; }
+  .warn-box strong { color:var(--warning); }
+
+  .formula { font-family:'Cambria Math','Times New Roman',serif; font-style:italic; background:#fef9e7; padding:2px 6px; border-radius:3px; }
+
+  table.param-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+  .param-table th { background:var(--primary); color:#fff; padding:9px 12px; text-align:left; }
+  .param-table td { padding:8px 12px; border-bottom:1px solid var(--border); }
+  .param-table tr:hover td { background:#eaf2f8; }
+
+  .parts-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:14px 0; }
+  .part-item { padding:14px; border-radius:8px; border:2px solid var(--border); cursor:pointer; transition:all .2s; background:#fff; }
+  .part-item:hover { border-color:var(--accent); transform:translateY(-2px); box-shadow:0 4px 12px rgba(46,134,193,.15); }
+  .part-item.active { border-color:var(--accent); background:#eaf2f8; }
+  .part-item .part-icon { font-size:24px; margin-bottom:6px; }
+  .part-item .part-name { font-weight:700; color:var(--primary); font-size:15px; }
+  .part-item .part-desc { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  @media(max-width:768px) {
+    .panel { padding:18px 14px; }
+    .header h1 { font-size:22px; }
+    canvas { max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>核磁共振波谱仪器</h1>
+  <p style="display:flex;align-items:center;justify-content:center;gap:30px;">交互式数字增强资源 — 仪器分析数字出版物样章 <span class="watermark">王葳制作</span></p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-panel="p1">仪器结构总览</div>
+  <div class="tab" data-panel="p2">超导磁体系统</div>
+  <div class="tab" data-panel="p3">探头与射频</div>
+  <div class="tab" data-panel="p4">脉冲FT实验</div>
+</div>
+
+<!-- ============ Panel 1: 仪器结构总览 ============ -->
+<div class="panel active" id="p1">
+  <div class="section-title">NMR 波谱仪的整体结构</div>
+
+  <div class="card">
+    <div class="section-subtitle">四大组成部分（点击查看详情）</div>
+    <div class="parts-list">
+      <div class="part-item active" data-part="0" onclick="selectPart(0)">
+        <div class="part-icon">🧲</div>
+        <div class="part-name">超导磁体</div>
+        <div class="part-desc">提供强稳定均匀外磁场 B₀</div>
+      </div>
+      <div class="part-item" data-part="1" onclick="selectPart(1)">
+        <div class="part-icon">📡</div>
+        <div class="part-name">探头</div>
+        <div class="part-desc">放置样品，含发射/接收线圈</div>
+      </div>
+      <div class="part-item" data-part="2" onclick="selectPart(2)">
+        <div class="part-icon">📻</div>
+        <div class="part-name">射频系统</div>
+        <div class="part-desc">激发脉冲发射 + FID 信号接收</div>
+      </div>
+      <div class="part-item" data-part="3" onclick="selectPart(3)">
+        <div class="part-icon">💻</div>
+        <div class="part-name">计算机系统</div>
+        <div class="part-desc">控制、采集、傅里叶变换处理</div>
+      </div>
+    </div>
+
+    <canvas id="c1" width="780" height="380"></canvas>
+    <div class="canvas-label" id="c1Label">脉冲 FT NMR 波谱仪整体结构示意图 — 点击上方部件高亮对应模块</div>
+
+    <div class="info-box" id="partInfo">
+      <strong>超导磁体：</strong>仪器最昂贵、最庞大的部件。超导线圈浸在液氦中（4.2 K），产生强磁场（1.5~23.5 T）。磁场稳定性决定谱线分辨率，磁场均匀度通过匀场线圈（shim）调至 ≤ 10⁻⁹。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">CW-NMR 与 FT-NMR 的对比</div>
+    <table class="param-table">
+      <thead>
+        <tr><th>对比项</th><th>CW-NMR（连续波）</th><th>FT-NMR（脉冲傅里叶变换）</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>激发方式</td><td>单频扫频或扫场</td><td>宽带脉冲同时激发</td></tr>
+        <tr><td>采集时间</td><td>数分钟~数十分钟</td><td>秒级（可累加）</td></tr>
+        <tr><td>灵敏度</td><td>低</td><td>高（SNR ∝ √N）</td></tr>
+        <tr><td>¹³C 可行性</td><td>几乎不可行</td><td>常规</td></tr>
+        <tr><td>现代应用</td><td>已淘汰，仅教学演示</td><td>全部主流仪器</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ Panel 2: 超导磁体系统 ============ -->
+<div class="panel" id="p2">
+  <div class="section-title">超导磁体系统</div>
+
+  <div class="card">
+    <div class="section-subtitle">磁场强度与共振频率</div>
+    <p style="font-size:14px;">超导磁体的磁场强度 B₀ 决定了 ¹H 的共振频率（俗称"仪器频率"）：</p>
+    <div style="text-align:center;margin:14px 0;font-size:18px;">
+      <span class="formula">ν(¹H) = 42.577 × B₀ (MHz)</span>
+    </div>
+    <div class="slider-group" style="justify-content:center;margin:16px 0;">
+      <label>磁场 B₀ / T</label>
+      <input type="range" id="b0Slider" min="1.5" max="23.5" value="7" step="0.1">
+      <span class="val" id="b0Val">7.0 T</span>
+    </div>
+    <div style="text-align:center;font-size:15px;margin-bottom:10px;">
+      ¹H 共振频率：<strong id="freqVal" style="color:var(--accent);font-size:18px;">~298 MHz</strong>
+      &nbsp;&nbsp;|&nbsp;&nbsp;仪器规格：<strong id="instName" style="color:var(--success);">300 MHz 仪器</strong>
+    </div>
+    <div id="freqBars" style="margin-top:14px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">磁体剖视图（液氦/液氮冷却）</div>
+    <canvas id="c2" width="700" height="360"></canvas>
+    <div class="canvas-label">超导磁体结构：液氦杜瓦 → 超导主线圈 → 匀场线圈 → 室温孔（样品区）</div>
+
+    <div class="info-box">
+      <strong>关键参数：</strong><br>
+      • 磁场稳定性：≤ 0.01 ppm/h（需要锁场系统）<br>
+      • 磁场均匀度：≤ 1 ppb（通过 20~40 组匀场线圈调节）<br>
+      • 液氦消耗：约 0.1~0.3 L/天（新型无液氦机型已普及）<br>
+      • 持续模式：超导闭环运行，断电仍维持磁场
+    </div>
+
+    <div class="warn-box">
+      <strong>安全警告：</strong>超导磁体失超（quench）时，液氦急剧汽化，可能造成：① 室内氧气被挤出窒息；② 磁场骤降损坏探头；③ 修复费用极高。<strong>禁止将铁磁物品带入磁体 5 m 范围内</strong>。
+    </div>
+  </div>
+</div>
+
+<!-- ============ Panel 3: 探头与射频 ============ -->
+<div class="panel" id="p3">
+  <div class="section-title">探头与射频系统</div>
+
+  <div class="card">
+    <div class="section-subtitle">探头：NMR 的"心脏"</div>
+    <p style="font-size:14px;margin-bottom:12px;">探头是样品所在的核心部件，集成了发射/接收线圈、锁场线圈、变温系统。它的品质直接决定灵敏度和分辨率。</p>
+    <canvas id="c3" width="640" height="320"></canvas>
+    <div class="canvas-label">探头内部结构示意</div>
+
+    <div class="info-box">
+      <strong>探头分类：</strong><br>
+      • <strong>正相探头（BBFO）</strong>：¹H 灵敏度优先，¹³C 次之<br>
+      • <strong>反相探头（BBI）</strong>：¹H 通道为主，常用于 ¹H-¹³C 二维实验<br>
+      • <strong>低温探头（CryoProbe）</strong>：线圈冷却至 ~20 K，灵敏度提升 3~4 倍<br>
+      • <strong>微量探头</strong>：1.7 mm 或 1 mm，适合 μg 级样品
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">射频脉冲的"带宽"效应</div>
+    <p style="font-size:14px;">脉冲越短，覆盖的频率范围越宽（激发带宽 ∝ 1/脉冲宽度）。调节脉冲宽度观察激发范围：</p>
+    <div class="slider-group" style="justify-content:center;margin:16px 0;">
+      <label>脉冲宽度 / μs</label>
+      <input type="range" id="pwSlider" min="1" max="50" value="10" step="0.5">
+      <span class="val" id="pwVal">10.0 μs</span>
+    </div>
+    <div style="text-align:center;font-size:14px;margin-bottom:8px;">
+      激发带宽 BW ≈ <strong id="bwVal" style="color:var(--accent);">100 kHz</strong>
+      &nbsp;&nbsp;|&nbsp;&nbsp;90° 脉冲约 <strong id="p90Val" style="color:var(--success);">7.5 μs</strong>
+    </div>
+    <canvas id="c3b" width="700" height="220"></canvas>
+    <div class="canvas-label">蓝色：时域脉冲 | 红色：频域激发曲线（sinc 函数）</div>
+
+    <div class="info-box">
+      <strong>为什么 FT-NMR 能取代扫频？</strong>一个短脉冲相当于无数个频率的正弦波叠加，"一次激发"就覆盖全谱。这是 Ernst 把 CW 推下历史舞台的核心原理。
+    </div>
+  </div>
+</div>
+
+<!-- ============ Panel 4: 脉冲FT实验 ============ -->
+<div class="panel" id="p4">
+  <div class="section-title">脉冲傅里叶变换 NMR 实验</div>
+
+  <div class="card">
+    <div class="section-subtitle">完整实验流程演示</div>
+    <p style="font-size:14px;margin-bottom:12px;">点击按钮模拟一次完整 FT-NMR 实验流程：弛豫等待 → 脉冲激发 → FID 采集 → 傅里叶变换 → 得谱图</p>
+    <canvas id="c4" width="780" height="360"></canvas>
+    <div class="controls">
+      <button class="btn btn-outline" onclick="setExpStage(0)">① 准备</button>
+      <button class="btn btn-primary" onclick="setExpStage(1)">② 脉冲激发</button>
+      <button class="btn btn-primary" onclick="setExpStage(2)">③ FID 采集</button>
+      <button class="btn btn-success" onclick="setExpStage(3)">④ 傅里叶变换</button>
+      <button class="btn btn-success" onclick="setExpStage(4)">⑤ 完成谱图</button>
+    </div>
+    <div class="info-box" id="expInfo">
+      <strong>准备阶段：</strong>样品在磁场中达到平衡，磁化矢量 M₀ 沿 z 轴。点击下一步观察脉冲激发。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">关键实验参数</div>
+    <table class="param-table">
+      <thead>
+        <tr><th>参数</th><th>典型值</th><th>作用 / 选择依据</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>谱宽 SW</td><td>10~15 ppm (¹H)</td><td>覆盖所有目标信号；过宽会降低数字分辨率</td></tr>
+        <tr><td>弛豫延迟 D1</td><td>1~5 s</td><td>等待核自旋恢复平衡；常用 ≥ 5×T₁ 保证定量</td></tr>
+        <tr><td>脉冲角</td><td>30°~90°</td><td>30° (Ernst 角) 适合累加；90° 用于定量</td></tr>
+        <tr><td>采集时间 AQ</td><td>1~4 s</td><td>FID 衰减到噪声水平所需时长</td></tr>
+        <tr><td>扫描次数 NS</td><td>8~128 (¹H)，1k~10k (¹³C)</td><td>累加提升信噪比，SNR ∝ √NS</td></tr>
+        <tr><td>数字分辨率</td><td>0.2~0.5 Hz/点</td><td>= SW / 采样点数；过粗会丢失精细裂分</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ======= Tab switching =======
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.panel).classList.add('active');
+  });
+});
+
+// ======= Panel 1: 仪器结构总览 =======
+const c1 = document.getElementById('c1');
+const ctx1 = c1.getContext('2d');
+let activePart = 0;
+const partColors = ['rgba(243,156,18,', 'rgba(46,204,113,', 'rgba(155,89,182,', 'rgba(52,152,219,'];
+
+const partDescriptions = [
+  '<strong>超导磁体：</strong>仪器最昂贵、最庞大的部件。超导线圈浸在液氦中（4.2 K），产生强磁场（1.5~23.5 T）。磁场稳定性决定谱线分辨率，磁场均匀度通过匀场线圈（shim）调至 ≤ 10⁻⁹。',
+  '<strong>探头：</strong>样品插入磁体中心的核心部件。内置发射/接收线圈（射频场 B₁）、锁场线圈、变温控制。线圈几何与材料直接决定灵敏度，低温探头可比常温灵敏 3~4 倍。',
+  '<strong>射频系统：</strong>包括频率合成器、功率放大器、发射/接收开关、前置放大器、检波器。现代仪器采用数字接收，直接过采样 ADC，频率分辨率和动态范围大幅提升。',
+  '<strong>计算机系统：</strong>控制脉冲序列时序、采集 FID、傅里叶变换、相位校正、基线校正、积分、峰值 pick 等全过程。常见软件：TopSpin (Bruker)、VnmrJ (Agilent)。'
+];
+
+function selectPart(idx) {
+  activePart = idx;
+  document.querySelectorAll('.part-item').forEach((p, i) => p.classList.toggle('active', i === idx));
+  document.getElementById('partInfo').innerHTML = partDescriptions[idx];
+  drawInstrument();
+}
+
+let t1 = 0;
+function drawInstrument() {
+  t1 += 0.02;
+  const W = c1.width, H = c1.height;
+  ctx1.clearRect(0, 0, W, H);
+  ctx1.fillStyle = '#0d1b2a';
+  ctx1.fillRect(0, 0, W, H);
+
+  // Layout: 4 horizontal blocks left-to-right
+  // [Magnet(竖直圆柱)] [Probe] [RF system] [Computer]
+  const positions = [
+    {x: 100, y: 130, w: 140, h: 160, label: '超导磁体', sub: 'B₀'},
+    {x: 280, y: 130, w: 130, h: 160, label: '探头', sub: '样品 + 线圈'},
+    {x: 445, y: 130, w: 150, h: 160, label: '射频系统', sub: '脉冲发射 / FID 接收'},
+    {x: 625, y: 130, w: 130, h: 160, label: '计算机', sub: '采集与 FT'},
+  ];
+
+  // connection arrows
+  ctx1.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx1.lineWidth = 2;
+  ctx1.setLineDash([5,3]);
+  for (let i = 0; i < positions.length - 1; i++) {
+    const a = positions[i], b = positions[i+1];
+    ctx1.beginPath();
+    ctx1.moveTo(a.x + a.w + 4, a.y + a.h/2);
+    ctx1.lineTo(b.x - 4, b.y + b.h/2);
+    ctx1.stroke();
+    // arrow head
+    ctx1.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx1.beginPath();
+    ctx1.moveTo(b.x - 4, b.y + b.h/2);
+    ctx1.lineTo(b.x - 10, b.y + b.h/2 - 4);
+    ctx1.lineTo(b.x - 10, b.y + b.h/2 + 4);
+    ctx1.fill();
+  }
+  ctx1.setLineDash([]);
+
+  // Title
+  ctx1.fillStyle = '#fff';
+  ctx1.font = 'bold 15px Microsoft YaHei';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('脉冲 FT NMR 波谱仪结构框图', W/2, 30);
+
+  // Top flow label
+  ctx1.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx1.font = '12px Microsoft YaHei';
+  ctx1.fillText('能量与信号流向 →', W/2, 56);
+
+  positions.forEach((p, i) => {
+    const isActive = i === activePart;
+    const baseColor = partColors[i];
+    const fillAlpha = isActive ? 0.85 : 0.4;
+    const pulse = isActive ? 0.5 + 0.3 * Math.sin(t1 * 4) : 0;
+
+    // Glow if active
+    if (isActive) {
+      const grd = ctx1.createRadialGradient(p.x + p.w/2, p.y + p.h/2, 5, p.x + p.w/2, p.y + p.h/2, p.w);
+      grd.addColorStop(0, baseColor + (0.4 * pulse) + ')');
+      grd.addColorStop(1, baseColor + '0)');
+      ctx1.fillStyle = grd;
+      ctx1.fillRect(p.x - 30, p.y - 30, p.w + 60, p.h + 60);
+    }
+
+    // Block fill
+    ctx1.fillStyle = baseColor + fillAlpha + ')';
+    // rounded rect
+    const r = 10;
+    ctx1.beginPath();
+    ctx1.moveTo(p.x + r, p.y);
+    ctx1.lineTo(p.x + p.w - r, p.y);
+    ctx1.quadraticCurveTo(p.x + p.w, p.y, p.x + p.w, p.y + r);
+    ctx1.lineTo(p.x + p.w, p.y + p.h - r);
+    ctx1.quadraticCurveTo(p.x + p.w, p.y + p.h, p.x + p.w - r, p.y + p.h);
+    ctx1.lineTo(p.x + r, p.y + p.h);
+    ctx1.quadraticCurveTo(p.x, p.y + p.h, p.x, p.y + p.h - r);
+    ctx1.lineTo(p.x, p.y + r);
+    ctx1.quadraticCurveTo(p.x, p.y, p.x + r, p.y);
+    ctx1.closePath();
+    ctx1.fill();
+    ctx1.strokeStyle = baseColor + (isActive ? '1' : '0.6') + ')';
+    ctx1.lineWidth = isActive ? 3 : 1.5;
+    ctx1.stroke();
+
+    // Section-specific icon drawing
+    drawPartIcon(ctx1, i, p);
+
+    // Labels
+    ctx1.fillStyle = '#fff';
+    ctx1.font = 'bold 15px Microsoft YaHei';
+    ctx1.textAlign = 'center';
+    ctx1.fillText(p.label, p.x + p.w/2, p.y + p.h + 24);
+    ctx1.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx1.font = '11px Microsoft YaHei';
+    ctx1.fillText(p.sub, p.x + p.w/2, p.y + p.h + 42);
+  });
+
+  // Bottom legend
+  ctx1.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx1.font = '11px Microsoft YaHei';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('脉冲激发：B₁ ⟂ B₀；FID 信号：样品中诱导衰减信号 → 数字化 → FT', W/2, H - 12);
+
+  requestAnimationFrame(drawInstrument);
+}
+
+function drawPartIcon(ctx, idx, p) {
+  const cx = p.x + p.w/2, cy = p.y + p.h/2 - 10;
+  ctx.lineWidth = 2;
+
+  if (idx === 0) { // Magnet: tall cylinder with B0 arrow
+    ctx.strokeStyle = '#fff';
+    ctx.strokeRect(cx - 25, p.y + 30, 50, 70);
+    // top ellipse
+    ctx.beginPath(); ctx1.ellipse(cx, p.y + 30, 25, 8, 0, 0, Math.PI*2); ctx1.stroke();
+    ctx1.beginPath(); ctx1.ellipse(cx, p.y + 100, 25, 8, 0, 0, Math.PI*2); ctx1.stroke();
+    // B0 arrow up
+    ctx1.strokeStyle = '#f39c12';
+    ctx1.lineWidth = 2.5;
+    ctx1.beginPath(); ctx1.moveTo(cx + 35, p.y + 95); ctx1.lineTo(cx + 35, p.y + 35); ctx1.stroke();
+    ctx1.beginPath(); ctx1.moveTo(cx + 30, p.y + 42); ctx1.lineTo(cx + 35, p.y + 35); ctx1.lineTo(cx + 40, p.y + 42); ctx1.stroke();
+    ctx1.fillStyle = '#f39c12';
+    ctx1.font = 'bold 12px Cambria Math';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('B₀', cx + 35, p.y + 110);
+  }
+
+  if (idx === 1) { // Probe: sample tube
+    ctx1.strokeStyle = '#fff';
+    ctx1.lineWidth = 2;
+    // sample tube (vertical)
+    ctx1.strokeRect(cx - 8, p.y + 35, 16, 60);
+    ctx1.fillStyle = 'rgba(231,76,60,0.6)';
+    ctx1.fillRect(cx - 7, p.y + 55, 14, 38);
+    // coil windings
+    ctx1.strokeStyle = '#f1c40f';
+    ctx1.lineWidth = 1.5;
+    for (let i = 0; i < 4; i++) {
+      ctx1.beginPath();
+      ctx1.ellipse(cx, p.y + 60 + i*7, 18, 4, 0, 0, Math.PI*2);
+      ctx1.stroke();
+    }
+    ctx1.fillStyle = '#fff';
+    ctx1.font = 'bold 10px Microsoft YaHei';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('样品', cx, p.y + 78);
+  }
+
+  if (idx === 2) { // RF: waveform
+    ctx1.strokeStyle = '#9b59b6';
+    ctx1.lineWidth = 2;
+    ctx1.beginPath();
+    for (let x = 0; x < 80; x++) {
+      const px = p.x + 25 + x;
+      const py = cy + Math.sin(x * 0.3 + t1 * 4) * 14;
+      x === 0 ? ctx1.moveTo(px, py) : ctx1.lineTo(px, py);
+    }
+    ctx1.stroke();
+    ctx1.fillStyle = '#fff';
+    ctx1.font = 'bold 11px Cambria Math';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('B₁(t)', cx, cy + 30);
+  }
+
+  if (idx === 3) { // Computer: display with spectrum
+    ctx1.strokeStyle = '#fff';
+    ctx1.lineWidth = 2;
+    ctx1.strokeRect(p.x + 30, p.y + 40, 70, 50);
+    // small spectrum inside
+    ctx1.strokeStyle = '#2ecc71';
+    ctx1.lineWidth = 1.5;
+    ctx1.beginPath();
+    const sx = p.x + 33, sy = p.y + 82;
+    ctx1.moveTo(sx, sy);
+    const pts = [0,0,0,0.3,0.8,0.3,0,0,-0.4,0.5,1,0.5,-0.4,0,0,0.2,0.6,0.2,0,0,0];
+    pts.forEach((h, i) => {
+      ctx1.lineTo(sx + i*3, sy - h*30);
+    });
+    ctx1.stroke();
+    ctx1.fillStyle = '#fff';
+    ctx1.font = '10px Microsoft YaHei';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('FT → 谱图', cx, p.y + 105);
+  }
+}
+
+drawInstrument();
+
+// ======= Panel 2: 超导磁体 =======
+const c2 = document.getElementById('c2');
+const ctx2 = c2.getContext('2d');
+const b0Slider = document.getElementById('b0Slider');
+const b0Val = document.getElementById('b0Val');
+const freqVal = document.getElementById('freqVal');
+const instName = document.getElementById('instName');
+const freqBars = document.getElementById('freqBars');
+
+const instSpecs = [
+  {b0: 1.5, name: '60 MHz 仪器 (教学/便携)'},
+  {b0: 4.7, name: '200 MHz 仪器 (低端)'},
+  {b0: 7.0, name: '300 MHz 仪器 (常规)'},
+  {b0: 9.4, name: '400 MHz 仪器 (常规)'},
+  {b0: 11.7, name: '500 MHz 仪器 (高端)'},
+  {b0: 14.1, name: '600 MHz 仪器 (高端)'},
+  {b0: 18.8, name: '800 MHz 仪器 (高端)'},
+  {b0: 23.5, name: '1000 MHz 仪器 (顶级)'},
+];
+
+const otherNuclei = [
+  {sym: '²H', gamma: 6.53, color: '#e74c3c'},
+  {sym: '¹³C', gamma: 10.71, color: '#27ae60'},
+  {sym: '¹⁵N', gamma: -4.32, color: '#8e44ad'},
+  {sym: '¹⁹F', gamma: 40.05, color: '#3498db'},
+  {sym: '³¹P', gamma: 17.25, color: '#f39c12'},
+];
+
+function updateB0() {
+  const b0 = parseFloat(b0Slider.value);
+  b0Val.textContent = b0.toFixed(1) + ' T';
+  const freq1H = 42.577 * b0;
+  freqVal.textContent = '~' + freq1H.toFixed(0) + ' MHz';
+  
+  let nearest = instSpecs[0], minDiff = 999;
+  instSpecs.forEach(s => {
+    if (Math.abs(s.b0 - b0) < minDiff) { minDiff = Math.abs(s.b0 - b0); nearest = s; }
+  });
+  instName.textContent = nearest.name;
+
+  // Build freq bars
+  let html = '<div style="margin-top:10px;"><div style="font-size:13px;font-weight:600;color:var(--primary);margin-bottom:6px;">其他核在同一 B₀ 下的共振频率</div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  // ¹H bar
+  const maxFreq = freq1H;
+  html += '<div style="text-align:center;"><div style="width:80px;height:' + (freq1H / maxFreq * 120 + 20) + 'px;background:linear-gradient(to top,#2e86c1,#5dade2);border-radius:4px 4px 0 0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;color:#fff;font-weight:700;font-size:12px;">' + freq1H.toFixed(0) + '</div><div style="margin-top:4px;font-size:12px;font-weight:600;">¹H</div></div>';
+  otherNuclei.forEach(n => {
+    const f = Math.abs(n.gamma) * b0;
+    const h = f / maxFreq * 120 + 20;
+    html += '<div style="text-align:center;"><div style="width:80px;height:' + h + 'px;background:linear-gradient(to top,' + n.color + ',' + n.color + 'cc);border-radius:4px 4px 0 0;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;color:#fff;font-weight:700;font-size:12px;">' + f.toFixed(0) + '</div><div style="margin-top:4px;font-size:12px;font-weight:600;">' + n.sym + '</div></div>';
+  });
+  html += '</div><div style="font-size:11px;color:var(--muted);margin-top:6px;">单位 MHz。注意 ¹⁵N 旋磁比为负，但频率取绝对值。</div></div>';
+  freqBars.innerHTML = html;
+
+  drawMagnet();
+}
+
+function drawMagnet() {
+  const W = c2.width, H = c2.height;
+  ctx2.clearRect(0, 0, W, H);
+  ctx2.fillStyle = '#0d1b2a';
+  ctx2.fillRect(0, 0, W, H);
+
+  const cx = W/2, cy = H/2;
+  const b0 = parseFloat(b0Slider.value);
+  
+  // Outer case
+  ctx2.fillStyle = 'rgba(149,165,166,0.3)';
+  ctx2.strokeStyle = '#95a5a6';
+  ctx2.lineWidth = 2;
+  ctx2.beginPath();
+  ctx2.ellipse(cx, 50, 120, 20, 0, 0, Math.PI*2);
+  ctx2.fill();
+  ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.moveTo(cx - 120, 50);
+  ctx2.lineTo(cx - 120, H - 60);
+  ctx2.lineTo(cx + 120, H - 60);
+  ctx2.lineTo(cx + 120, 50);
+  ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.ellipse(cx, H - 60, 120, 20, 0, 0, Math.PI*2);
+  ctx2.stroke();
+  ctx2.fillStyle = '#95a5a6';
+  ctx2.font = '11px Microsoft YaHei';
+  ctx2.textAlign = 'center';
+  ctx2.fillText('真空夹层', cx - 90, H/2);
+
+  // LN2 layer
+  ctx2.strokeStyle = '#3498db';
+  ctx2.lineWidth = 2;
+  ctx2.beginPath(); ctx2.ellipse(cx, 70, 100, 16, 0, 0, Math.PI*2); ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.moveTo(cx - 100, 70); ctx2.lineTo(cx - 100, H - 80);
+  ctx2.moveTo(cx + 100, 70); ctx2.lineTo(cx + 100, H - 80);
+  ctx2.stroke();
+  ctx2.beginPath(); ctx2.ellipse(cx, H - 80, 100, 16, 0, 0, Math.PI*2); ctx2.stroke();
+  ctx2.fillStyle = 'rgba(52,152,219,0.15)';
+  ctx2.fill();
+  ctx2.fillStyle = '#3498db';
+  ctx2.font = '11px Microsoft YaHei';
+  ctx2.fillText('液氮层 77 K', cx + 65, H/2);
+
+  // LHe layer
+  ctx2.strokeStyle = '#e74c3c';
+  ctx2.lineWidth = 2;
+  ctx2.beginPath(); ctx2.ellipse(cx, 95, 80, 14, 0, 0, Math.PI*2); ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.moveTo(cx - 80, 95); ctx2.lineTo(cx - 80, H - 105);
+  ctx2.moveTo(cx + 80, 95); ctx2.lineTo(cx + 80, H - 105);
+  ctx2.stroke();
+  ctx2.beginPath(); ctx2.ellipse(cx, H - 105, 80, 14, 0, 0, Math.PI*2); ctx2.stroke();
+  // LHe liquid
+  ctx2.fillStyle = 'rgba(231,76,60,0.12)';
+  ctx2.beginPath();
+  ctx2.ellipse(cx, 95, 78, 12, 0, 0, Math.PI*2);
+  ctx2.moveTo(cx - 78, 95);
+  ctx2.lineTo(cx - 78, H - 105);
+  ctx2.ellipse(cx, H - 105, 78, 12, 0, Math.PI, 0, true);
+  ctx2.lineTo(cx - 78, 95);
+  ctx2.fill();
+  ctx2.fillStyle = '#e74c3c';
+  ctx2.font = '11px Microsoft YaHei';
+  ctx2.fillText('液氦层 4.2 K', cx + 50, H/2 - 20);
+
+  // Superconducting coil
+  ctx2.strokeStyle = '#9b59b6';
+  ctx2.lineWidth = 3;
+  ctx2.beginPath(); ctx2.ellipse(cx, 115, 60, 10, 0, 0, Math.PI*2); ctx2.stroke();
+  for (let i = 0; i < 8; i++) {
+    ctx2.beginPath();
+    ctx2.ellipse(cx, 120 + i*14, 60, 5, 0, 0, Math.PI*2);
+    ctx2.stroke();
+  }
+  ctx2.beginPath(); ctx2.ellipse(cx, 120 + 7*14 + 8, 60, 10, 0, 0, Math.PI*2); ctx2.stroke();
+  ctx2.fillStyle = '#9b59b6';
+  ctx2.font = '11px Microsoft YaHei';
+  ctx2.fillText('超导线圈', cx - 85, H/2 - 5);
+
+  // Room temp bore (sample space)
+  ctx2.fillStyle = 'rgba(46,204,113,0.1)';
+  ctx2.strokeStyle = '#2ecc71';
+  ctx2.lineWidth = 2;
+  ctx2.fillRect(cx - 18, 60, 36, H - 120);
+  ctx2.strokeRect(cx - 18, 60, 36, H - 120);
+  ctx2.fillStyle = '#2ecc71';
+  ctx2.font = '10px Microsoft YaHei';
+  ctx2.fillText('室温孔', cx, H/2 + 20);
+
+  // Sample tube
+  ctx2.fillStyle = 'rgba(231,76,60,0.5)';
+  ctx2.fillRect(cx - 5, 130, 10, H - 220);
+  ctx2.fillStyle = '#fff';
+  ctx2.font = '10px Microsoft YaHei';
+  ctx2.fillText('样品管', cx, H - 100);
+
+  // B0 arrow
+  ctx2.strokeStyle = '#f39c12';
+  ctx2.lineWidth = 3;
+  const b0Len = Math.min(150, 60 + b0 * 4);
+  ctx2.beginPath();
+  ctx2.moveTo(cx + 150, H - 80);
+  ctx2.lineTo(cx + 150, H - 80 - b0Len);
+  ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.moveTo(cx + 144, H - 80 - b0Len + 8);
+  ctx2.lineTo(cx + 150, H - 80 - b0Len);
+  ctx2.lineTo(cx + 156, H - 80 - b0Len + 8);
+  ctx2.stroke();
+  ctx2.fillStyle = '#f39c12';
+  ctx2.font = 'bold 13px Cambria Math';
+  ctx2.fillText('B₀ = ' + b0.toFixed(1) + ' T', cx + 150, H - 75 - b0Len - 10);
+
+  // Title
+  ctx2.fillStyle = '#fff';
+  ctx2.font = 'bold 14px Microsoft YaHei';
+  ctx2.textAlign = 'center';
+  ctx2.fillText('超导磁体剖视图', W/2, 22);
+}
+
+b0Slider.oninput = updateB0;
+updateB0();
+
+// ======= Panel 3: Probe + RF pulse =======
+const c3 = document.getElementById('c3');
+const ctx3 = c3.getContext('2d');
+let t3 = 0;
+function drawProbe() {
+  t3 += 0.04;
+  const W = c3.width, H = c3.height;
+  ctx3.clearRect(0, 0, W, H);
+  ctx3.fillStyle = '#0d1b2a';
+  ctx3.fillRect(0, 0, W, H);
+  
+  const cx = W/2;
+
+  // Outer probe body
+  ctx3.strokeStyle = '#7f8c8d';
+  ctx3.lineWidth = 2;
+  ctx3.strokeRect(cx - 100, 30, 200, H - 60);
+  ctx3.fillStyle = 'rgba(127,140,141,0.1)';
+  ctx3.fillRect(cx - 100, 30, 200, H - 60);
+  
+  // Sample tube (glass)
+  ctx3.strokeStyle = '#ecf0f1';
+  ctx3.strokeRect(cx - 8, 50, 16, H - 120);
+  ctx3.fillStyle = 'rgba(231,76,60,0.4)';
+  ctx3.fillRect(cx - 7, 80, 14, H - 180);
+  
+  // RF coil (saddle or solenoid)
+  ctx3.strokeStyle = '#f1c40f';
+  ctx3.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    const y = 100 + i * 22;
+    ctx3.beginPath();
+    ctx3.ellipse(cx, y, 35, 8, 0, 0, Math.PI*2);
+    ctx3.stroke();
+  }
+  
+  // Lock coil (deuterium)
+  ctx3.strokeStyle = '#9b59b6';
+  ctx3.lineWidth = 1.5;
+  ctx3.setLineDash([3,3]);
+  for (let i = 0; i < 3; i++) {
+    const y = 130 + i * 20;
+    ctx3.beginPath();
+    ctx3.ellipse(cx, y, 50, 10, 0, 0, Math.PI*2);
+    ctx3.stroke();
+  }
+  ctx3.setLineDash([]);
+  
+  // Z-gradient coil
+  ctx3.strokeStyle = '#3498db';
+  ctx3.strokeRect(cx - 85, 90, 6, 120);
+  ctx3.strokeRect(cx + 79, 90, 6, 120);
+  
+  // Thermocouple / heater
+  ctx3.strokeStyle = '#e67e22';
+  ctx3.beginPath();
+  ctx3.moveTo(cx + 70, 70);
+  ctx3.lineTo(cx + 70, H - 70);
+  ctx3.stroke();
+
+  // Animations: RF oscillation around sample
+  const pulse = 0.5 + 0.5 * Math.sin(t3 * 5);
+  ctx3.strokeStyle = `rgba(46,204,113,${0.3 + pulse * 0.5})`;
+  ctx3.lineWidth = 2;
+  ctx3.beginPath();
+  for (let y = 80; y < H - 120; y += 2) {
+    const amp = 12 * Math.sin(y * 0.1 + t3 * 5);
+    ctx3.lineTo(cx + amp, y);
+  }
+  ctx3.stroke();
+  ctx3.beginPath();
+  for (let y = 80; y < H - 120; y += 2) {
+    const amp = 12 * Math.sin(y * 0.1 + t3 * 5 + Math.PI);
+    ctx3.lineTo(cx + amp, y);
+  }
+  ctx3.stroke();
+
+  // Labels
+  ctx3.fillStyle = '#fff';
+  ctx3.font = 'bold 13px Microsoft YaHei';
+  ctx3.textAlign = 'center';
+  ctx3.fillText('探头结构', cx, 22);
+  
+  ctx3.font = '10px Microsoft YaHei';
+  ctx3.textAlign = 'left';
+  ctx3.fillStyle = '#f1c40f';
+  ctx3.fillText('射频线圈 (B₁)', cx + 60, 100);
+  ctx3.fillStyle = '#9b59b6';
+  ctx3.fillText('锁场线圈 (²H)', cx + 60, 150);
+  ctx3.fillStyle = '#3498db';
+  ctx3.fillText('Z 梯度线圈', cx + 60, 200);
+  ctx3.fillStyle = '#e67e22';
+  ctx3.fillText('温控元件', cx + 60, 230);
+  ctx3.fillStyle = '#ecf0f1';
+  ctx3.fillText('样品管 (5 mm)', cx - 40, H - 65);
+  ctx3.fillStyle = '#2ecc71';
+  ctx3.fillText('B₁ 场振荡', cx - 80, 110);
+
+  requestAnimationFrame(drawProbe);
+}
+drawProbe();
+
+// RF pulse bandwidth
+const c3b = document.getElementById('c3b');
+const ctx3b = c3b.getContext('2d');
+const pwSlider = document.getElementById('pwSlider');
+const pwVal = document.getElementById('pwVal');
+const bwVal = document.getElementById('bwVal');
+const p90Val = document.getElementById('p90Val');
+
+let t3b = 0;
+function drawRFPulse() {
+  t3b += 0.05;
+  const W = c3b.width, H = c3b.height;
+  ctx3b.clearRect(0, 0, W, H);
+  ctx3b.fillStyle = '#0d1b2a';
+  ctx3b.fillRect(0, 0, W, H);
+
+  const pw = parseFloat(pwSlider.value);
+  pwVal.textContent = pw.toFixed(1) + ' μs';
+  const bw = 1000 / pw;
+  bwVal.textContent = bw.toFixed(0) + ' kHz';
+  const p90 = 7.5;
+  p90Val.textContent = p90.toFixed(1) + ' μs';
+
+  // Split: left time-domain, right frequency-domain
+  const halfW = W / 2;
+
+  // ---- Left: time-domain pulse ----
+  ctx3b.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx3b.lineWidth = 1;
+  ctx3b.beginPath(); ctx3b.moveTo(10, H/2); ctx3b.lineTo(halfW - 10, H/2); ctx3b.stroke();
+
+  // pulse as rectangle with RF oscillation inside
+  const pulseW = Math.max(20, pw * 4);
+  const px0 = (halfW - pulseW) / 2 + 20;
+  ctx3b.fillStyle = 'rgba(46,134,193,0.3)';
+  ctx3b.fillRect(px0, H/2 - 60, pulseW, 120);
+  ctx3b.strokeStyle = '#2ecc71';
+  ctx3b.lineWidth = 2;
+  ctx3b.beginPath();
+  for (let x = 0; x <= pulseW; x++) {
+    const py = H/2 + Math.sin(x * 0.5 + t3b * 2) * 30 * (x < pulseW ? 1 : 0);
+    x === 0 ? ctx3b.moveTo(px0 + x, py) : ctx3b.lineTo(px0 + x, py);
+  }
+  ctx3b.stroke();
+  ctx3b.strokeStyle = '#2ecc71';
+  ctx3b.strokeRect(px0, H/2 - 60, pulseW, 120);
+
+  // Labels
+  ctx3b.fillStyle = '#fff';
+  ctx3b.font = 'bold 12px Microsoft YaHei';
+  ctx3b.textAlign = 'center';
+  ctx3b.fillText('时域：脉冲宽度 ' + pw.toFixed(1) + ' μs', halfW/2, 18);
+  ctx3b.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx3b.font = '11px Microsoft YaHei';
+  ctx3b.fillText('脉冲越短 → 频带越宽', halfW/2, H - 8);
+
+  // divide line
+  ctx3b.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx3b.beginPath(); ctx3b.moveTo(halfW, 10); ctx3b.lineTo(halfW, H - 10); ctx3b.stroke();
+
+  // ---- Right: frequency-domain sinc ----
+  ctx3b.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx3b.lineWidth = 1;
+  ctx3b.beginPath(); ctx3b.moveTo(halfW + 10, H/2); ctx3b.lineTo(W - 10, H/2); ctx3b.stroke();
+  
+  // Bandwidth markers
+  const bwPx = Math.min((halfW - 40) / 2, bw / 6);
+  ctx3b.strokeStyle = 'rgba(243,156,18,0.5)';
+  ctx3b.setLineDash([3,3]);
+  ctx3b.beginPath();
+  ctx3b.moveTo(halfW + halfW/2 - bwPx, 30);
+  ctx3b.lineTo(halfW + halfW/2 - bwPx, H - 30);
+  ctx3b.moveTo(halfW + halfW/2 + bwPx, 30);
+  ctx3b.lineTo(halfW + halfW/2 + bwPx, H - 30);
+  ctx3b.stroke();
+  ctx3b.setLineDash([]);
+
+  // Sinc function (envelope of pulse FT)
+  ctx3b.strokeStyle = '#e74c3c';
+  ctx3b.lineWidth = 2;
+  ctx3b.beginPath();
+  const cx2 = halfW + halfW/2;
+  for (let x = halfW + 10; x < W - 10; x++) {
+    const dx = (x - cx2) / (bwPx / 3);
+    const sinc = Math.abs(dx) < 0.01 ? 1 : Math.sin(Math.PI * dx) / (Math.PI * dx);
+    const py = H/2 - sinc * 70;
+    x === halfW + 10 ? ctx3b.moveTo(x, py) : ctx3b.lineTo(x, py);
+  }
+  ctx3b.stroke();
+
+  ctx3b.fillStyle = '#f39c12';
+  ctx3b.font = 'bold 11px Microsoft YaHei';
+  ctx3b.textAlign = 'center';
+  ctx3b.fillText('BW', cx2 - bwPx - 12, 22);
+  ctx3b.fillText('BW', cx2 + bwPx + 12, 22);
+  ctx3b.fillStyle = '#fff';
+  ctx3b.font = 'bold 12px Microsoft YaHei';
+  ctx3b.fillText('频域：激发带宽 BW ≈ ' + bw.toFixed(0) + ' kHz', halfW * 1.5, 18);
+  ctx3b.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx3b.font = '11px Microsoft YaHei';
+  ctx3b.fillText('sinc 函数（脉冲的 FT）', halfW * 1.5, H - 8);
+
+  requestAnimationFrame(drawRFPulse);
+}
+pwSlider.oninput = drawRFPulse;
+drawRFPulse();
+
+// ======= Panel 4: 脉冲FT实验流程 =======
+const c4 = document.getElementById('c4');
+const ctx4 = c4.getContext('2d');
+let expStage = 0;
+let t4 = 0;
+
+const expDescriptions = [
+  '<strong>① 准备阶段：</strong>样品在磁场 B₀ 中达到热平衡，磁化矢量 M₀ 沿 z 轴建立。弛豫等待 D1 确保上一轮扫描的影响完全消除。',
+  '<strong>② 脉冲激发：</strong>射频线圈施加 B₁ 脉冲（典型 90°），磁化矢量从 z 轴翻转至 xy 平面，产生横向磁化 M<sub>xy</sub>。',
+  '<strong>③ FID 采集：</strong>M<sub>xy</sub> 在 xy 平面进动并随 T₂ 衰减，在接收线圈中诱导出时域信号 FID（自由感应衰减）。采样时间 1~4 s。',
+  '<strong>④ 傅里叶变换：</strong>计算机对 FID 做傅里叶变换，时域衰减振荡 → 频域吸收峰。再做相位校正、基线校正。',
+  '<strong>⑤ 完成谱图：</strong>得到 ¹H NMR 谱图：横轴化学位移 δ (ppm)，纵轴信号强度。可积分、归属、二维扩展。'
+];
+
+function setExpStage(s) {
+  expStage = s;
+  document.getElementById('expInfo').innerHTML = expDescriptions[s];
+}
+
+function drawExp() {
+  t4 += 0.03;
+  const W = c4.width, H = c4.height;
+  ctx4.clearRect(0, 0, W, H);
+  ctx4.fillStyle = '#0d1b2a';
+  ctx4.fillRect(0, 0, W, H);
+
+  // Layout: vector diagram (left) + signal graph (right)
+  const splitX = 360;
+
+  // ===== Left: 3D vector diagram (M in B0) =====
+  const cx = splitX/2, cy = H/2 + 20;
+  
+  // B0 axis (z, vertical)
+  ctx4.strokeStyle = 'rgba(243,156,18,0.7)';
+  ctx4.lineWidth = 2;
+  ctx4.beginPath();
+  ctx4.moveTo(cx, H - 30);
+  ctx4.lineTo(cx, 30);
+  ctx4.stroke();
+  // arrowhead
+  ctx4.beginPath();
+  ctx4.moveTo(cx - 5, 38); ctx4.lineTo(cx, 30); ctx4.lineTo(cx + 5, 38);
+  ctx4.stroke();
+  ctx4.fillStyle = '#f39c12';
+  ctx4.font = 'bold 13px Cambria Math';
+  ctx4.textAlign = 'center';
+  ctx4.fillText('B₀ (z)', cx + 18, 35);
+
+  // x, y axes (perspective)
+  ctx4.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx4.lineWidth = 1;
+  ctx4.beginPath();
+  ctx4.moveTo(cx, cy); ctx4.lineTo(cx + 100, cy + 40);
+  ctx4.stroke();
+  ctx4.beginPath();
+  ctx4.moveTo(cx, cy); ctx4.lineTo(cx - 70, cy + 30);
+  ctx4.stroke();
+  ctx4.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx4.font = '11px Cambria Math';
+  ctx4.fillText("x'", cx + 100, cy + 50);
+  ctx4.fillText("y'", cx - 60, cy + 40);
+
+  // M vector based on stage
+  let mAngle = 0;
+  let mTiltZ = 1; // 1 = along z, 0 = in xy plane
+  let fadeAlpha = 1;
+
+  if (expStage === 0) {
+    // M along z
+    mTiltZ = 1;
+    mAngle = 0;
+  } else if (expStage === 1) {
+    // M tilting down (pulse)
+    const phase = (t4 * 1.5) % 1;
+    mTiltZ = 1 - phase;
+    mAngle = phase * 0.5;
+  } else if (expStage === 2 || expStage === 3 || expStage === 4) {
+    // M in xy plane, precessing
+    mTiltZ = 0;
+    mAngle = t4 * 4;
+  }
+
+  // Draw M
+  const mLen = 90;
+  const mEndX = cx + Math.cos(mAngle) * mLen * (1 - mTiltZ) * 0.8;
+  const mEndY = cy + Math.sin(mAngle) * mLen * (1 - mTiltZ) * 0.4 - mTiltZ * mLen;
+  ctx4.strokeStyle = '#2ecc71';
+  ctx4.lineWidth = 3;
+  ctx4.beginPath();
+  ctx4.moveTo(cx, cy);
+  ctx4.lineTo(mEndX, mEndY);
+  ctx4.stroke();
+  // arrowhead
+  const ang = Math.atan2(mEndY - cy, mEndX - cx);
+  ctx4.beginPath();
+  ctx4.moveTo(mEndX, mEndY);
+  ctx4.lineTo(mEndX - 8*Math.cos(ang - 0.4), mEndY - 8*Math.sin(ang - 0.4));
+  ctx4.moveTo(mEndX, mEndY);
+  ctx4.lineTo(mEndX - 8*Math.cos(ang + 0.4), mEndY - 8*Math.sin(ang + 0.4));
+  ctx4.stroke();
+  ctx4.fillStyle = '#2ecc71';
+  ctx4.font = 'bold 13px Cambria Math';
+  ctx4.textAlign = 'left';
+  ctx4.fillText('M', mEndX + 8, mEndY);
+
+  // Pulse indicator
+  if (expStage === 1) {
+    ctx4.strokeStyle = `rgba(155,89,182,${0.5 + 0.5*Math.sin(t4*8)})`;
+    ctx4.lineWidth = 3;
+    ctx4.strokeRect(cx - 40, cy - 40, 80, 80);
+    ctx4.fillStyle = '#9b59b6';
+    ctx4.font = 'bold 12px Microsoft YaHei';
+    ctx4.textAlign = 'center';
+    ctx4.fillText('B₁ 脉冲施加中', cx, cy - 50);
+  }
+
+  // Label
+  ctx4.fillStyle = '#fff';
+  ctx4.font = 'bold 12px Microsoft YaHei';
+  ctx4.textAlign = 'center';
+  let leftTitle = ['平衡态 M₀ ∥ B₀','射频脉冲翻转 M','M_xy 进动','M_xy 进动 (衰减中)','M_xy 进动 (衰减中)'][expStage];
+  ctx4.fillText(leftTitle, cx, H - 8);
+
+  // ===== Right: signal graph =====
+  const gx0 = splitX + 20, gy0 = 40, gw = W - splitX - 40, gh = H - 80;
+  
+  // Frame
+  ctx4.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx4.lineWidth = 1;
+  ctx4.strokeRect(gx0, gy0, gw, gh);
+  
+  // Zero line
+  ctx4.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx4.beginPath();
+  ctx4.moveTo(gx0, gy0 + gh/2);
+  ctx4.lineTo(gx0 + gw, gy0 + gh/2);
+  ctx4.stroke();
+
+  // Axis labels
+  ctx4.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx4.font = '11px Microsoft YaHei';
+  ctx4.textAlign = 'center';
+  let rightTitle = '';
+  
+  if (expStage <= 1) {
+    rightTitle = '等待信号...';
+    ctx4.fillText(rightTitle, gx0 + gw/2, gy0 + gh/2 - 10);
+  } else if (expStage === 2) {
+    // FID采集
+    rightTitle = '时域信号 FID';
+    ctx4.strokeStyle = '#9b59b6';
+    ctx4.lineWidth = 2;
+    ctx4.beginPath();
+    for (let x = 0; x < gw; x++) {
+      const tt = x / gw * 4;
+      const env = Math.exp(-tt * 0.8);
+      const val = env * (Math.sin(tt * 18) + 0.4 * Math.sin(tt*11)) * gh * 0.35;
+      const py = gy0 + gh/2 - val;
+      x === 0 ? ctx4.moveTo(gx0 + x, py) : ctx4.lineTo(gx0 + x, py);
+    }
+    ctx4.stroke();
+    // envelope
+    ctx4.strokeStyle = 'rgba(231,76,60,0.4)';
+    ctx4.setLineDash([4,3]);
+    ctx4.beginPath();
+    for (let x = 0; x < gw; x++) {
+      const tt = x / gw * 4;
+      const env = Math.exp(-tt * 0.8);
+      const py = gy0 + gh/2 - env * gh * 0.45;
+      x === 0 ? ctx4.moveTo(gx0 + x, py) : ctx4.lineTo(gx0 + x, py);
+    }
+    ctx4.stroke();
+    ctx4.beginPath();
+    for (let x = 0; x < gw; x++) {
+      const tt = x / gw * 4;
+      const env = Math.exp(-tt * 0.8);
+      const py = gy0 + gh/2 + env * gh * 0.45;
+      x === 0 ? ctx4.moveTo(gx0 + x, py) : ctx4.lineTo(gx0 + x, py);
+    }
+    ctx4.stroke();
+    ctx4.setLineDash([]);
+  } else {
+    // Stage 3: FT animation, Stage 4/5: spectrum
+    rightTitle = expStage === 3 ? '傅里叶变换中...' : '频域谱图';
+    
+    if (expStage === 3) {
+      // Animation of FT (morphing)
+      const phase = (t4 * 1.5) % 1;
+      ctx4.strokeStyle = '#3498db';
+      ctx4.lineWidth = 2;
+      ctx4.beginPath();
+      for (let x = 0; x < gw; x++) {
+        const tt = x / gw * 4;
+        const env = Math.exp(-tt * 0.8);
+        const fDomain = Math.exp(-Math.pow((x - gw*0.35)/30, 2)) + 0.4 * Math.exp(-Math.pow((x - gw*0.7)/25, 2));
+        const tDomain = env * (Math.sin(tt * 18) + 0.4 * Math.sin(tt*11)) * 0.35;
+        const val = (1 - phase) * tDomain + phase * fDomain;
+        const py = gy0 + gh/2 - val * gh * 0.7;
+        x === 0 ? ctx4.moveTo(gx0 + x, py) : ctx4.lineTo(gx0 + x, py);
+      }
+      ctx4.stroke();
+    } else {
+      // Final spectrum
+      ctx4.strokeStyle = '#2ecc71';
+      ctx4.lineWidth = 2;
+      ctx4.beginPath();
+      for (let x = 0; x < gw; x++) {
+        let val = 0;
+        // Peak 1 (tall): δ ~1.2
+        val += 1.0 * Math.exp(-Math.pow((x - gw*0.3)/12, 2));
+        val += 0.33 * Math.exp(-Math.pow((x - gw*0.30 - 20)/8, 2));
+        val += 0.33 * Math.exp(-Math.pow((x - gw*0.30 + 20)/8, 2));
+        // Peak 2: δ ~3.7 (quartet)
+        val += 0.7 * Math.exp(-Math.pow((x - gw*0.55)/10, 2));
+        val += 0.5 * Math.exp(-Math.pow((x - gw*0.55 - 16)/7, 2));
+        val += 0.5 * Math.exp(-Math.pow((x - gw*0.55 + 16)/7, 2));
+        val += 0.2 * Math.exp(-Math.pow((x - gw*0.55 - 28)/7, 2));
+        val += 0.2 * Math.exp(-Math.pow((x - gw*0.55 + 28)/7, 2));
+        // Peak 3: OH
+        val += 0.3 * Math.exp(-Math.pow((x - gw*0.82)/10, 2));
+        const py = gy0 + gh - val * gh * 0.75 - 5;
+        x === 0 ? ctx4.moveTo(gx0 + x, py) : ctx4.lineTo(gx0 + x, py);
+      }
+      ctx4.stroke();
+
+      // ppm axis
+      ctx4.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx4.font = '10px Cambria Math';
+      ctx4.textAlign = 'center';
+      [0, 1, 2, 3, 4, 5, 6].forEach(v => {
+        const px = gx0 + gw - (v/6) * gw;
+        ctx4.fillText(v, px, gy0 + gh + 15);
+      });
+      ctx4.fillText('δ / ppm', gx0 + gw/2, gy0 + gh + 30);
+    }
+  }
+  
+  ctx4.fillStyle = '#fff';
+  ctx4.font = 'bold 12px Microsoft YaHei';
+  ctx4.textAlign = 'center';
+  ctx4.fillText(rightTitle, gx0 + gw/2, gy0 - 12);
+
+  // Step indicator
+  ctx4.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx4.font = '11px Microsoft YaHei';
+  ctx4.textAlign = 'left';
+  ctx4.fillText('步骤 ' + (expStage+1) + ' / 5', gx0, gy0 + gh + 30);
+
+  requestAnimationFrame(drawExp);
+}
+drawExp();
+</script>
+</body>
+</html>
