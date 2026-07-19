@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核自旋与共振 — 交互式数字增强资源</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --accent: #2e86c1;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #dce1e6;
+    --success: #27ae60;
+    --warning: #f39c12;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; }
+  
+  /* Header */
+  .header { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; padding:28px 40px; text-align:center; position:relative; }
+  .header h1 { font-size:28px; font-weight:700; letter-spacing:1px; }
+  .header p { font-size:14px; opacity:.85; margin-top:6px; }
+  .header .watermark { font:bold 28px/1 'SimHei','Microsoft YaHei',sans-serif; color:#111; letter-spacing:3px; flex-shrink:0; }
+  
+  /* Panel */
+  .panel { padding:30px 36px; max-width:1100px; margin:0 auto; }
+  
+  /* Section titles */
+  .section-title { font-size:20px; font-weight:700; color:var(--primary); margin-bottom:18px; padding-bottom:8px; border-bottom:2px solid var(--accent); }
+  .section-subtitle { font-size:16px; font-weight:600; color:var(--accent); margin:16px 0 10px; }
+  
+  /* Cards */
+  .card { background:var(--card); border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,.06); padding:24px; margin-bottom:20px; border:1px solid var(--border); }
+  
+  /* Canvas */
+  canvas { display:block; margin:0 auto; border-radius:8px; background:#0d1b2a; }
+  .canvas-label { text-align:center; font-size:13px; color:var(--muted); margin-top:6px; }
+  
+  /* Controls */
+  .controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; align-items:center; justify-content:center; }
+  .btn { padding:8px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--primary); }
+  .btn-outline { background:transparent; border:2px solid var(--accent); color:var(--accent); }
+  .btn-outline:hover { background:var(--accent); color:#fff; }
+  .btn-success { background:var(--success); color:#fff; }
+  .btn-success:hover { opacity:.85; }
+  
+  /* Slider */
+  .slider-group { display:flex; align-items:center; gap:10px; }
+  .slider-group label { font-size:13px; font-weight:600; min-width:90px; text-align:right; }
+  .slider-group input[type=range] { flex:1; max-width:200px; }
+  .slider-group .val { font-size:13px; color:var(--accent); min-width:50px; font-weight:700; }
+  
+  /* Info box */
+  .info-box { background:#eaf2f8; border-left:4px solid var(--accent); padding:14px 18px; border-radius:0 8px 8px 0; margin:14px 0; font-size:14px; }
+  .info-box strong { color:var(--primary); }
+  
+  /* Formula */
+  .formula { font-family:'Cambria Math','Times New Roman',serif; font-style:italic; background:#fef9e7; padding:2px 6px; border-radius:3px; }
+  
+  /* Responsive */
+  @media(max-width:768px) {
+    .panel { padding:18px 14px; }
+    .header h1 { font-size:22px; }
+    canvas { max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>核自旋与共振</h1>
+  <p style="display:flex;align-items:center;justify-content:center;gap:30px;">交互式数字增强资源 — 仪器分析数字出版物样章 <span class="watermark">王葳制作</span></p>
+</div>
+
+<div class="panel">
+  <div class="section-title">核自旋与核磁共振现象</div>
+  
+  <div class="card">
+    <div class="section-subtitle">自旋核在外磁场中的进动</div>
+    <p style="font-size:14px;margin-bottom:12px;">具有自旋量子数 <span class="formula">I = 1/2</span> 的原子核（如 <sup>1</sup>H、<sup>13</sup>C）在外磁场 <span class="formula">B<sub>0</sub></span> 中产生拉莫尔进动。点击下方按钮观察不同状态：</p>
+    <canvas id="c1" width="700" height="380"></canvas>
+    <div class="canvas-label">左：无外磁场（随机取向） | 中：加外磁场（两能级分裂） | 右：施加射频（共振吸收）</div>
+    <div class="controls">
+      <button class="btn btn-outline" onclick="setNMMode(0)">无外磁场</button>
+      <button class="btn btn-primary" onclick="setNMMode(1)">加外磁场</button>
+      <button class="btn btn-success" onclick="setNMMode(2)">施加射频</button>
+    </div>
+    <div class="info-box" id="nmInfo">
+      <strong>提示：</strong>点击上方按钮切换状态，观察自旋核的行为变化。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">共振条件</div>
+    <p style="font-size:14px;">发生核磁共振的必要条件：</p>
+    <div style="text-align:center;margin:16px 0;font-size:18px;">
+      <span class="formula">ν = γ B<sub>0</sub> / (2π)</span>
+    </div>
+    <div class="slider-group" style="justify-content:center;margin-bottom:10px;">
+      <label>磁场强度 B<sub>0</sub> / T</label>
+      <input type="range" id="b0Slider" min="1" max="23" value="7" step="0.5">
+      <span class="val" id="b0Val">7.0 T</span>
+    </div>
+    <div style="text-align:center;font-size:15px;">
+      对应 <sup>1</sup>H 共振频率: <strong id="freqVal" style="color:var(--accent);">~298 MHz</strong>
+    </div>
+    <div class="info-box">
+      <strong>常见仪器：</strong>1.5 T (64 MHz) · 7.0 T (298 MHz) · 11.7 T (500 MHz) · 14.1 T (600 MHz) · 23.5 T (1000 MHz)
+    </div>
+  </div>
+</div>
+
+<script>
+// ======= Panel 1: NMR animation (extracted from original) =======
+const c1 = document.getElementById('c1');
+const ctx1 = c1.getContext('2d');
+let nmMode = 0; // 0=none, 1=field, 2=rf
+
+function setNMMode(m) {
+  nmMode = m;
+  const info = document.getElementById('nmInfo');
+  if (m === 0) info.innerHTML = '<strong>无外磁场：</strong>核自旋随机取向，能级简并，不产生宏观磁化。';
+  else if (m === 1) info.innerHTML = '<strong>加外磁场 B<sub>0</sub>：</strong>核自旋倾向于沿/逆磁场排列，分裂为两个能级（α低能态、β高能态），产生净磁化矢量 M<sub>0</sub>。';
+  else info.innerHTML = '<strong>施加射频 ν：</strong>当 ν = γB<sub>0</sub>/(2π)，自旋核吸收能量发生共振跃迁（α → β），宏观磁化矢量 M 偏离 z 轴。';
+}
+
+let t1 = 0;
+function drawNM() {
+  t1 += 0.02;
+  ctx1.clearRect(0, 0, c1.width, c1.height);
+  const W = c1.width, H = c1.height, sec = W / 3;
+
+  // Section backgrounds
+  ctx1.fillStyle = 'rgba(13,27,42,0.95)';
+  ctx1.fillRect(0, 0, W, H);
+  ctx1.strokeStyle = 'rgba(46,134,193,0.3)';
+  ctx1.lineWidth = 1;
+  ctx1.beginPath(); ctx1.moveTo(sec, 0); ctx1.lineTo(sec, H); ctx1.stroke();
+  ctx1.beginPath(); ctx1.moveTo(sec*2, 0); ctx1.lineTo(sec*2, H); ctx1.stroke();
+
+  // Section labels
+  ctx1.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx1.font = '12px Microsoft YaHei';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('无外磁场', sec*0.5, H - 10);
+  ctx1.fillText('加外磁场 B₀', sec*1.5, H - 10);
+  ctx1.fillText('施加射频 (共振)', sec*2.5, H - 10);
+
+  // Draw nucleus groups
+  const cx1 = sec * 0.5, cx2 = sec * 1.5, cx3 = sec * 2.5, cy = H * 0.42;
+
+  // Panel 1: random spins
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2 + t1 * 0.5;
+    const ax = cx1 + (i % 4 - 1.5) * 40;
+    const ay = cy + (Math.floor(i / 4) - 1) * 50;
+    drawArrow(ctx1, ax, ay, angle, 'rgba(46,134,193,0.8)');
+    drawNucleus(ctx1, ax, ay);
+  }
+
+  // Panel 2: aligned spins (up/down)
+  if (nmMode >= 1) {
+    // B0 arrow
+    ctx1.strokeStyle = 'rgba(243,156,18,0.9)';
+    ctx1.lineWidth = 3;
+    ctx1.beginPath(); ctx1.moveTo(cx2 - 40, cy + 20); ctx1.lineTo(cx2 - 40, cy - 80); ctx1.stroke();
+    ctx1.beginPath(); ctx1.moveTo(cx2 - 48, cy - 68); ctx1.lineTo(cx2 - 40, cy - 80); ctx1.lineTo(cx2 - 32, cy - 68); ctx1.stroke();
+    ctx1.fillStyle = 'rgba(243,156,18,0.9)';
+    ctx1.font = '13px Cambria Math';
+    ctx1.fillText('B₀', cx2 - 40, cy + 36);
+
+    // 8 up (α), 4 down (β)
+    for (let i = 0; i < 12; i++) {
+      const ax = cx2 + 20 + (i % 4 - 1.5) * 32;
+      const ay = cy + (Math.floor(i / 4) - 1) * 50;
+      const isUp = i < 8;
+      const wobble = Math.sin(t1 * 2 + i) * 0.15;
+      drawArrow(ctx1, ax, ay, isUp ? -Math.PI/2 + wobble : Math.PI/2 + wobble, isUp ? 'rgba(39,174,96,0.9)' : 'rgba(231,76,60,0.9)');
+      drawNucleus(ctx1, ax, ay);
+    }
+
+    // Energy diagram
+    drawEnergyDiagram(ctx1, cx2 + 100, cy + 60, 80);
+  }
+
+  // Panel 3: RF + precession
+  if (nmMode >= 2) {
+    // B0
+    ctx1.strokeStyle = 'rgba(243,156,18,0.9)';
+    ctx1.lineWidth = 3;
+    ctx1.beginPath(); ctx1.moveTo(cx3 - 40, cy + 20); ctx1.lineTo(cx3 - 40, cy - 80); ctx1.stroke();
+    ctx1.fillStyle = 'rgba(243,156,18,0.9)';
+    ctx1.font = '13px Cambria Math';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('B₀', cx3 - 40, cy + 36);
+
+    // RF wave
+    ctx1.strokeStyle = 'rgba(155,89,182,0.8)';
+    ctx1.lineWidth = 2;
+    ctx1.beginPath();
+    for (let x = 0; x < 60; x++) {
+      const px = cx3 + 60 + x;
+      const py = cy - 60 + Math.sin(x * 0.3 + t1 * 4) * 12;
+      x === 0 ? ctx1.moveTo(px, py) : ctx1.lineTo(px, py);
+    }
+    ctx1.stroke();
+    ctx1.fillStyle = 'rgba(155,89,182,0.9)';
+    ctx1.font = '12px Cambria Math';
+    ctx1.fillText('ν (RF)', cx3 + 90, cy - 78);
+
+    // Precessing M
+    const tiltAngle = 0.4;
+    const precessAngle = t1 * 3;
+    const mx = cx3 + 20 + Math.sin(precessAngle) * Math.sin(tiltAngle) * 50;
+    const mz_offset = -Math.cos(precessAngle) * Math.sin(tiltAngle) * 30;
+    ctx1.strokeStyle = 'rgba(46,204,113,0.9)';
+    ctx1.lineWidth = 3;
+    ctx1.beginPath(); ctx1.moveTo(cx3 + 20, cy); ctx1.lineTo(mx, cy + mz_offset); ctx1.stroke();
+    ctx1.fillStyle = 'rgba(46,204,113,0.9)';
+    ctx1.beginPath(); ctx1.arc(mx, cy + mz_offset, 5, 0, Math.PI*2); ctx1.fill();
+    ctx1.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx1.font = '12px Cambria Math';
+    ctx1.fillText('M', mx + 8, cy + mz_offset);
+
+    // Absorption indicator
+    const pulse = 0.5 + 0.5 * Math.sin(t1 * 6);
+    ctx1.fillStyle = `rgba(46,204,113,${pulse * 0.3})`;
+    ctx1.beginPath(); ctx1.arc(cx3 + 20, cy, 35, 0, Math.PI*2); ctx1.fill();
+  }
+
+  requestAnimationFrame(drawNM);
+}
+
+function drawArrow(ctx, x, y, angle, color) {
+  const len = 18;
+  const ex = x + Math.cos(angle) * len;
+  const ey = y + Math.sin(angle) * len;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx1.moveTo(x, y); ctx1.lineTo(ex, ey); ctx1.stroke();
+  // arrowhead
+  const ha = 0.5;
+  ctx1.beginPath();
+  ctx1.moveTo(ex, ey);
+  ctx1.lineTo(ex - 6*Math.cos(angle-ha), ey - 6*Math.sin(angle-ha));
+  ctx1.moveTo(ex, ey);
+  ctx1.lineTo(ex - 6*Math.cos(angle+ha), ey - 6*Math.sin(angle+ha));
+  ctx1.stroke();
+}
+
+function drawNucleus(ctx, x, y) {
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
+}
+
+function drawEnergyDiagram(ctx, x, y, h) {
+  // β level (higher)
+  ctx1.strokeStyle = 'rgba(231,76,60,0.9)';
+  ctx1.lineWidth = 2;
+  ctx1.beginPath(); ctx1.moveTo(x-25, y - h/2); ctx1.lineTo(x+25, y - h/2); ctx1.stroke();
+  ctx1.fillStyle = 'rgba(231,76,60,0.9)';
+  ctx1.font = '11px Cambria Math';
+  ctx1.textAlign = 'left';
+  ctx1.fillText('β (m=−½)', x+30, y - h/2 + 4);
+
+  // α level (lower)
+  ctx1.strokeStyle = 'rgba(39,174,96,0.9)';
+  ctx1.beginPath(); ctx1.moveTo(x-25, y + h/2); ctx1.lineTo(x+25, y + h/2); ctx1.stroke();
+  ctx1.fillStyle = 'rgba(39,174,96,0.9)';
+  ctx1.fillText('α (m=+½)', x+30, y + h/2 + 4);
+
+  // ΔE arrow
+  ctx1.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx1.lineWidth = 1;
+  ctx1.setLineDash([4,3]);
+  ctx1.beginPath(); ctx1.moveTo(x-40, y - h/2); ctx1.lineTo(x-40, y + h/2); ctx1.stroke();
+  ctx1.setLineDash([]);
+  ctx1.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('ΔE', x-40, y + 4);
+}
+
+drawNM();
+
+// B0 slider
+const b0Slider = document.getElementById('b0Slider');
+const b0Val = document.getElementById('b0Val');
+const freqVal = document.getElementById('freqVal');
+b0Slider.oninput = function() {
+  const b0 = parseFloat(this.value);
+  b0Val.textContent = b0.toFixed(1) + ' T';
+  const freq = (42.577 * b0).toFixed(0);
+  freqVal.textContent = '~' + freq + ' MHz';
+};
+</script>
+</body>
+</html>
