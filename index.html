@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核磁共振波谱法 — 交互式数字增强资源</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --accent: #2e86c1;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #dce1e6;
+    --success: #27ae60;
+    --warning: #f39c12;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; }
+  
+  /* Header */
+  .header { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; padding:28px 40px; text-align:center; }
+  .header h1 { font-size:28px; font-weight:700; letter-spacing:1px; }
+  .header p { font-size:14px; opacity:.85; margin-top:6px; }
+  .header .watermark { font:bold 28px/1 'SimHei','Microsoft YaHei',sans-serif; color:#111; letter-spacing:3px; flex-shrink:0; }
+  
+  /* Tabs */
+  .tabs { display:flex; background:#e8ecf1; border-bottom:2px solid var(--border); overflow-x:auto; }
+  .tab { padding:14px 22px; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; user-select:none; }
+  .tab:hover { color:var(--primary); background:rgba(46,134,193,.06); }
+  .tab.active { color:var(--primary); border-bottom-color:var(--accent); background:var(--card); }
+  
+  /* Panels */
+  .panel { display:none; padding:30px 36px; max-width:1100px; margin:0 auto; }
+  .panel.active { display:block; }
+  
+  /* Section titles */
+  .section-title { font-size:20px; font-weight:700; color:var(--primary); margin-bottom:18px; padding-bottom:8px; border-bottom:2px solid var(--accent); }
+  .section-subtitle { font-size:16px; font-weight:600; color:var(--accent); margin:16px 0 10px; }
+  
+  /* Cards */
+  .card { background:var(--card); border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,.06); padding:24px; margin-bottom:20px; border:1px solid var(--border); }
+  
+  /* Canvas */
+  canvas { display:block; margin:0 auto; border-radius:8px; background:#0d1b2a; }
+  .canvas-label { text-align:center; font-size:13px; color:var(--muted); margin-top:6px; }
+  
+  /* Controls */
+  .controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; align-items:center; justify-content:center; }
+  .btn { padding:8px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--primary); }
+  .btn-outline { background:transparent; border:2px solid var(--accent); color:var(--accent); }
+  .btn-outline:hover { background:var(--accent); color:#fff; }
+  .btn-success { background:var(--success); color:#fff; }
+  .btn-success:hover { opacity:.85; }
+  .btn-warning { background:var(--warning); color:#fff; }
+  
+  /* Slider */
+  .slider-group { display:flex; align-items:center; gap:10px; }
+  .slider-group label { font-size:13px; font-weight:600; min-width:90px; text-align:right; }
+  .slider-group input[type=range] { flex:1; max-width:200px; }
+  .slider-group .val { font-size:13px; color:var(--accent); min-width:50px; font-weight:700; }
+  
+  /* Info box */
+  .info-box { background:#eaf2f8; border-left:4px solid var(--accent); padding:14px 18px; border-radius:0 8px 8px 0; margin:14px 0; font-size:14px; }
+  .info-box strong { color:var(--primary); }
+  
+  /* Chemical shift table */
+  .shift-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+  .shift-table th { background:var(--primary); color:#fff; padding:9px 12px; text-align:left; font-weight:600; }
+  .shift-table td { padding:8px 12px; border-bottom:1px solid var(--border); }
+  .shift-table tr:hover td { background:#eaf2f8; }
+  .shift-bar { height:14px; border-radius:7px; min-width:4px; }
+  
+  /* Splitting demo */
+  .split-result { display:flex; gap:6px; justify-content:center; align-items:flex-end; height:120px; margin:20px 0; }
+  .split-peak { width:36px; border-radius:4px 4px 0 0; transition:height .3s; position:relative; }
+  .split-peak .peak-label { position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-size:11px; font-weight:700; color:var(--primary); }
+  
+  /* Spectrum viewer */
+  .spectrum-container { position:relative; }
+  .spectrum-info { position:absolute; background:rgba(26,82,118,.92); color:#fff; padding:8px 14px; border-radius:6px; font-size:12px; pointer-events:none; display:none; z-index:10; white-space:nowrap; }
+  
+  /* Formula highlight */
+  .formula { font-family:'Cambria Math','Times New Roman',serif; font-style:italic; background:#fef9e7; padding:2px 6px; border-radius:3px; }
+  
+  /* Responsive */
+  @media(max-width:768px) {
+    .panel { padding:18px 14px; }
+    .header h1 { font-size:22px; }
+    canvas { max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="watermark">王葳制作</span>
+  <h1>核磁共振波谱法</h1>
+  <p style="display:flex;align-items:center;justify-content:center;gap:30px;">交互式数字增强资源 — 仪器分析数字出版物样章 <span class="watermark">王葳制作</span></p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-panel="p1">核自旋与共振</div>
+  <div class="tab" data-panel="p2">化学位移</div>
+  <div class="tab" data-panel="p3">自旋偶合与裂分</div>
+  <div class="tab" data-panel="p4">图谱交互解析</div>
+  <div class="tab" data-panel="p5">弛豫过程</div>
+</div>
+
+<!-- ============ Panel 1: 核自旋与共振 ============ -->
+<div class="panel active" id="p1">
+  <div class="section-title">核自旋与核磁共振现象</div>
+  
+  <div class="card">
+    <div class="section-subtitle">自旋核在外磁场中的进动</div>
+    <p style="font-size:14px;margin-bottom:12px;">具有自旋量子数 <span class="formula">I = 1/2</span> 的原子核（如 <sup>1</sup>H、<sup>13</sup>C）在外磁场 <span class="formula">B<sub>0</sub></span> 中产生拉莫尔进动。点击下方按钮观察不同状态：</p>
+    <canvas id="c1" width="700" height="380"></canvas>
+    <div class="canvas-label">左：无外磁场（随机取向） | 中：加外磁场（两能级分裂） | 右：施加射频（共振吸收）</div>
+    <div class="controls">
+      <button class="btn btn-outline" onclick="setNMMode(0)">无外磁场</button>
+      <button class="btn btn-primary" onclick="setNMMode(1)">加外磁场</button>
+      <button class="btn btn-success" onclick="setNMMode(2)">施加射频</button>
+    </div>
+    <div class="info-box" id="nmInfo">
+      <strong>提示：</strong>点击上方按钮切换状态，观察自旋核的行为变化。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">共振条件</div>
+    <p style="font-size:14px;">发生核磁共振的必要条件：</p>
+    <div style="text-align:center;margin:16px 0;font-size:18px;">
+      <span class="formula">ν = γ B<sub>0</sub> / (2π)</span>
+    </div>
+    <div class="slider-group" style="justify-content:center;margin-bottom:10px;">
+      <label>磁场强度 B<sub>0</sub> / T</label>
+      <input type="range" id="b0Slider" min="1" max="23" value="7" step="0.5">
+      <span class="val" id="b0Val">7.0 T</span>
+    </div>
+    <div style="text-align:center;font-size:15px;">
+      对应 <sup>1</sup>H 共振频率: <strong id="freqVal" style="color:var(--accent);">~298 MHz</strong>
+    </div>
+    <div class="info-box">
+      <strong>常见仪器：</strong>1.5 T (64 MHz) · 7.0 T (298 MHz) · 11.7 T (500 MHz) · 14.1 T (600 MHz) · 23.5 T (1000 MHz)
+    </div>
+  </div>
+</div>
+
+<!-- ============ Panel 2: 化学位移 ============ -->
+<div class="panel" id="p2">
+  <div class="section-title">化学位移</div>
+  
+  <div class="card">
+    <div class="section-subtitle">化学位移的定义</div>
+    <p style="font-size:14px;">不同化学环境的原子核受到不同程度的屏蔽，共振频率发生微小偏移。化学位移定义为：</p>
+    <div style="text-align:center;margin:14px 0;font-size:17px;">
+      <span class="formula">δ = (ν<sub>样品</sub> − ν<sub>TMS</sub>) / ν<sub>0</sub> × 10<sup>6</sup> (ppm)</span>
+    </div>
+    <div class="info-box">
+      <strong>要点：</strong>化学位移 δ 为无量纲量，单位 ppm；TMS 的 δ ≡ 0；δ 越大表示去屏蔽越强（低场）。
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">常见 <sup>1</sup>H 化学位移范围（可筛选）</div>
+    <div style="margin-bottom:10px;">
+      <label style="font-size:13px;font-weight:600;">按类型筛选：</label>
+      <select id="shiftFilter" onchange="filterShiftTable()" style="padding:5px 10px;border-radius:5px;border:1px solid var(--border);">
+        <option value="all">全部</option>
+        <option value="aliphatic">脂肪族</option>
+        <option value="olefinic">烯烃/芳香族</option>
+        <option value="aldehyde">醛基</option>
+        <option value="carboxyl">羧基/活性氢</option>
+      </select>
+    </div>
+    <table class="shift-table" id="shiftTable">
+      <thead>
+        <tr><th>氢的类型</th><th>δ 范围 / ppm</th><th>位移示意</th><th>分类</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============ Panel 3: 自旋偶合与裂分 ============ -->
+<div class="panel" id="p3">
+  <div class="section-title">自旋-自旋偶合与裂分</div>
+
+  <div class="card">
+    <div class="section-subtitle">n+1 规则交互演示</div>
+    <p style="font-size:14px;">相邻 <span class="formula">n</span> 个等价氢使信号裂分为 <span class="formula">n+1</span> 个峰。调节下方滑块观察裂分模式：</p>
+    <div class="slider-group" style="justify-content:center;margin:16px 0;">
+      <label>相邻氢数 n</label>
+      <input type="range" id="nSlider" min="0" max="6" value="1" step="1">
+      <span class="val" id="nVal">1</span>
+    </div>
+    <div style="text-align:center;margin:6px 0;">
+      <strong id="splitDesc" style="color:var(--accent);font-size:16px;">二重峰 (doublet)</strong>
+      &nbsp;|&nbsp; 峰数: <strong id="peakCount">2</strong>
+      &nbsp;|&nbsp; 强度比: <strong id="intRatio">1 : 1</strong>
+    </div>
+    <canvas id="c3" width="700" height="220"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">偶合常数 <span class="formula">J</span></div>
+    <p style="font-size:14px;">偶合常数 <span class="formula">J</span> 是裂分峰间距，单位 Hz，与磁场强度无关，反映核间自旋偶合强弱。</p>
+    <div class="slider-group" style="justify-content:center;margin:14px 0;">
+      <label>J / Hz</label>
+      <input type="range" id="jSlider" min="1" max="18" value="7" step="0.5">
+      <span class="val" id="jVal">7.0 Hz</span>
+    </div>
+    <canvas id="c3b" width="700" height="200"></canvas>
+    <div class="info-box">
+      <strong>常见偶合常数：</strong><sup>3</sup>J(H-H) 邻位 6~9 Hz · <sup>2</sup>J(H-H) 同碳 12~18 Hz · 芳香邻位 7~9 Hz · 烯烃顺式 6~12 Hz、反式 12~18 Hz
+    </div>
+  </div>
+</div>
+
+<!-- ============ Panel 4: 图谱交互解析 ============ -->
+<div class="panel" id="p4">
+  <div class="section-title">图谱交互解析 — 乙醇 ¹H NMR</div>
+  
+  <div class="card">
+    <div class="section-subtitle">乙醇 (CH<sub>3</sub>CH<sub>2</sub>OH) ¹H NMR 图谱</div>
+    <p style="font-size:14px;">将鼠标移至图谱上方，点击吸收峰查看归属信息。</p>
+    <div class="spectrum-container">
+      <canvas id="c4" width="700" height="320"></canvas>
+      <div class="spectrum-info" id="specInfo"></div>
+    </div>
+    <div id="peakDetail" style="margin-top:12px;"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">解析步骤交互引导</div>
+    <div id="stepsContainer"></div>
+  </div>
+</div>
+
+<!-- ============ Panel 5: 弛豫过程 ============ -->
+<div class="panel" id="p5">
+  <div class="section-title">弛豫过程</div>
+
+  <div class="card">
+    <div class="section-subtitle">T<sub>1</sub> 与 T<sub>2</sub> 弛豫</div>
+    <p style="font-size:14px;">共振吸收后，核自旋系统通过弛豫回到平衡态。</p>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-top:14px;">
+      <div style="flex:1;min-width:300px;">
+        <canvas id="c5a" width="320" height="250"></canvas>
+        <div class="canvas-label">T<sub>1</sub> 纵向弛豫（自旋-晶格）</div>
+      </div>
+      <div style="flex:1;min-width:300px;">
+        <canvas id="c5b" width="320" height="250"></canvas>
+        <div class="canvas-label">T<sub>2</sub> 横向弛豫（自旋-自旋）</div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn btn-primary" onclick="startRelaxation()">激发 → 观察弛豫</button>
+    </div>
+    <div class="info-box">
+      <strong>T<sub>1</sub> 弛豫：</strong>M<sub>z</sub> 从 0 恢复至 M<sub>0</sub>，能量传递给周围"晶格"。<br>
+      <strong>T<sub>2</sub> 弛豫：</strong>M<sub>xy</sub> 从最大衰减至 0，自旋间相位失干，不涉及能量交换。
+    </div>
+  </div>
+</div>
+
+<script>
+// ======= Tab switching =======
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.panel).classList.add('active');
+  });
+});
+
+// ======= Panel 1: NMR animation =======
+const c1 = document.getElementById('c1');
+const ctx1 = c1.getContext('2d');
+let nmMode = 0; // 0=none, 1=field, 2=rf
+
+function setNMMode(m) {
+  nmMode = m;
+  const info = document.getElementById('nmInfo');
+  if (m === 0) info.innerHTML = '<strong>无外磁场：</strong>核自旋随机取向，能级简并，不产生宏观磁化。';
+  else if (m === 1) info.innerHTML = '<strong>加外磁场 B<sub>0</sub>：</strong>核自旋倾向于沿/逆磁场排列，分裂为两个能级（α低能态、β高能态），产生净磁化矢量 M<sub>0</sub>。';
+  else info.innerHTML = '<strong>施加射频 ν：</strong>当 ν = γB<sub>0</sub>/(2π)，自旋核吸收能量发生共振跃迁（α → β），宏观磁化矢量 M 偏离 z 轴。';
+}
+
+let t1 = 0;
+function drawNM() {
+  t1 += 0.02;
+  ctx1.clearRect(0, 0, c1.width, c1.height);
+  const W = c1.width, H = c1.height, sec = W / 3;
+
+  // Section backgrounds
+  ctx1.fillStyle = 'rgba(13,27,42,0.95)';
+  ctx1.fillRect(0, 0, W, H);
+  ctx1.strokeStyle = 'rgba(46,134,193,0.3)';
+  ctx1.lineWidth = 1;
+  ctx1.beginPath(); ctx1.moveTo(sec, 0); ctx1.lineTo(sec, H); ctx1.stroke();
+  ctx1.beginPath(); ctx1.moveTo(sec*2, 0); ctx1.lineTo(sec*2, H); ctx1.stroke();
+
+  // Section labels
+  ctx1.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx1.font = '12px Microsoft YaHei';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('无外磁场', sec*0.5, H - 10);
+  ctx1.fillText('加外磁场 B₀', sec*1.5, H - 10);
+  ctx1.fillText('施加射频 (共振)', sec*2.5, H - 10);
+
+  // Draw nucleus groups
+  const cx1 = sec * 0.5, cx2 = sec * 1.5, cx3 = sec * 2.5, cy = H * 0.42;
+
+  // Panel 1: random spins
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2 + t1 * 0.5;
+    const ax = cx1 + (i % 4 - 1.5) * 40;
+    const ay = cy + (Math.floor(i / 4) - 1) * 50;
+    drawArrow(ctx1, ax, ay, angle, 'rgba(46,134,193,0.8)');
+    drawNucleus(ctx1, ax, ay);
+  }
+
+  // Panel 2: aligned spins (up/down)
+  if (nmMode >= 1) {
+    // B0 arrow
+    ctx1.strokeStyle = 'rgba(243,156,18,0.9)';
+    ctx1.lineWidth = 3;
+    ctx1.beginPath(); ctx1.moveTo(cx2 - 40, cy + 20); ctx1.lineTo(cx2 - 40, cy - 80); ctx1.stroke();
+    ctx1.beginPath(); ctx1.moveTo(cx2 - 48, cy - 68); ctx1.lineTo(cx2 - 40, cy - 80); ctx1.lineTo(cx2 - 32, cy - 68); ctx1.stroke();
+    ctx1.fillStyle = 'rgba(243,156,18,0.9)';
+    ctx1.font = '13px Cambria Math';
+    ctx1.fillText('B₀', cx2 - 40, cy + 36);
+
+    // 8 up (α), 4 down (β)
+    for (let i = 0; i < 12; i++) {
+      const ax = cx2 + 20 + (i % 4 - 1.5) * 32;
+      const ay = cy + (Math.floor(i / 4) - 1) * 50;
+      const isUp = i < 8;
+      const wobble = Math.sin(t1 * 2 + i) * 0.15;
+      drawArrow(ctx1, ax, ay, isUp ? -Math.PI/2 + wobble : Math.PI/2 + wobble, isUp ? 'rgba(39,174,96,0.9)' : 'rgba(231,76,60,0.9)');
+      drawNucleus(ctx1, ax, ay);
+    }
+
+    // Energy diagram
+    drawEnergyDiagram(ctx1, cx2 + 100, cy + 60, 80);
+  }
+
+  // Panel 3: RF + precession
+  if (nmMode >= 2) {
+    // B0
+    ctx1.strokeStyle = 'rgba(243,156,18,0.9)';
+    ctx1.lineWidth = 3;
+    ctx1.beginPath(); ctx1.moveTo(cx3 - 40, cy + 20); ctx1.lineTo(cx3 - 40, cy - 80); ctx1.stroke();
+    ctx1.fillStyle = 'rgba(243,156,18,0.9)';
+    ctx1.font = '13px Cambria Math';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('B₀', cx3 - 40, cy + 36);
+
+    // RF wave
+    ctx1.strokeStyle = 'rgba(155,89,182,0.8)';
+    ctx1.lineWidth = 2;
+    ctx1.beginPath();
+    for (let x = 0; x < 60; x++) {
+      const px = cx3 + 60 + x;
+      const py = cy - 60 + Math.sin(x * 0.3 + t1 * 4) * 12;
+      x === 0 ? ctx1.moveTo(px, py) : ctx1.lineTo(px, py);
+    }
+    ctx1.stroke();
+    ctx1.fillStyle = 'rgba(155,89,182,0.9)';
+    ctx1.font = '12px Cambria Math';
+    ctx1.fillText('ν (RF)', cx3 + 90, cy - 78);
+
+    // Precessing M
+    const tiltAngle = 0.4;
+    const precessAngle = t1 * 3;
+    const mx = cx3 + 20 + Math.sin(precessAngle) * Math.sin(tiltAngle) * 50;
+    const mz_offset = -Math.cos(precessAngle) * Math.sin(tiltAngle) * 30;
+    ctx1.strokeStyle = 'rgba(46,204,113,0.9)';
+    ctx1.lineWidth = 3;
+    ctx1.beginPath(); ctx1.moveTo(cx3 + 20, cy); ctx1.lineTo(mx, cy + mz_offset); ctx1.stroke();
+    ctx1.fillStyle = 'rgba(46,204,113,0.9)';
+    ctx1.beginPath(); ctx1.arc(mx, cy + mz_offset, 5, 0, Math.PI*2); ctx1.fill();
+    ctx1.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx1.font = '12px Cambria Math';
+    ctx1.fillText('M', mx + 8, cy + mz_offset);
+
+    // Absorption indicator
+    const pulse = 0.5 + 0.5 * Math.sin(t1 * 6);
+    ctx1.fillStyle = `rgba(46,204,113,${pulse * 0.3})`;
+    ctx1.beginPath(); ctx1.arc(cx3 + 20, cy, 35, 0, Math.PI*2); ctx1.fill();
+  }
+
+  requestAnimationFrame(drawNM);
+}
+
+function drawArrow(ctx, x, y, angle, color) {
+  const len = 18;
+  const ex = x + Math.cos(angle) * len;
+  const ey = y + Math.sin(angle) * len;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx1.moveTo(x, y); ctx1.lineTo(ex, ey); ctx1.stroke();
+  // arrowhead
+  const ha = 0.5;
+  ctx1.beginPath();
+  ctx1.moveTo(ex, ey);
+  ctx1.lineTo(ex - 6*Math.cos(angle-ha), ey - 6*Math.sin(angle-ha));
+  ctx1.moveTo(ex, ey);
+  ctx1.lineTo(ex - 6*Math.cos(angle+ha), ey - 6*Math.sin(angle+ha));
+  ctx1.stroke();
+}
+
+function drawNucleus(ctx, x, y) {
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fill();
+}
+
+function drawEnergyDiagram(ctx, x, y, h) {
+  // β level (higher)
+  ctx1.strokeStyle = 'rgba(231,76,60,0.9)';
+  ctx1.lineWidth = 2;
+  ctx1.beginPath(); ctx1.moveTo(x-25, y - h/2); ctx1.lineTo(x+25, y - h/2); ctx1.stroke();
+  ctx1.fillStyle = 'rgba(231,76,60,0.9)';
+  ctx1.font = '11px Cambria Math';
+  ctx1.textAlign = 'left';
+  ctx1.fillText('β (m=−½)', x+30, y - h/2 + 4);
+
+  // α level (lower)
+  ctx1.strokeStyle = 'rgba(39,174,96,0.9)';
+  ctx1.beginPath(); ctx1.moveTo(x-25, y + h/2); ctx1.lineTo(x+25, y + h/2); ctx1.stroke();
+  ctx1.fillStyle = 'rgba(39,174,96,0.9)';
+  ctx1.fillText('α (m=+½)', x+30, y + h/2 + 4);
+
+  // ΔE arrow
+  ctx1.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx1.lineWidth = 1;
+  ctx1.setLineDash([4,3]);
+  ctx1.beginPath(); ctx1.moveTo(x-40, y - h/2); ctx1.lineTo(x-40, y + h/2); ctx1.stroke();
+  ctx1.setLineDash([]);
+  ctx1.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx1.textAlign = 'center';
+  ctx1.fillText('ΔE', x-40, y + 4);
+}
+
+drawNM();
+
+// B0 slider
+const b0Slider = document.getElementById('b0Slider');
+const b0Val = document.getElementById('b0Val');
+const freqVal = document.getElementById('freqVal');
+b0Slider.oninput = function() {
+  const b0 = parseFloat(this.value);
+  b0Val.textContent = b0.toFixed(1) + ' T';
+  const freq = (42.577 * b0).toFixed(0);
+  freqVal.textContent = '~' + freq + ' MHz';
+};
+
+// ======= Panel 2: Shift table =======
+const shiftData = [
+  {type:'R-CH₃', range:'0.8 ~ 1.2', min:0.8, max:1.2, cat:'aliphatic'},
+  {type:'R₂-CH₂', range:'1.2 ~ 1.5', min:1.2, max:1.5, cat:'aliphatic'},
+  {type:'R₃-CH', range:'1.4 ~ 1.8', min:1.4, max:1.8, cat:'aliphatic'},
+  {type:'Ar-CH₃', range:'2.1 ~ 2.5', min:2.1, max:2.5, cat:'olefinic'},
+  {type:'C≡C-H', range:'2.0 ~ 3.0', min:2.0, max:3.0, cat:'olefinic'},
+  {type:'R-O-CH', range:'3.3 ~ 4.0', min:3.3, max:4.0, cat:'aliphatic'},
+  {type:'C=C-H (烯)', range:'4.5 ~ 6.5', min:4.5, max:6.5, cat:'olefinic'},
+  {type:'Ar-H (芳)', range:'6.5 ~ 8.5', min:6.5, max:8.5, cat:'olefinic'},
+  {type:'R-CHO', range:'9.5 ~ 10.5', min:9.5, max:10.5, cat:'aldehyde'},
+  {type:'R-COOH', range:'10 ~ 13', min:10, max:13, cat:'carboxyl'},
+  {type:'R-OH', range:'1 ~ 5', min:1, max:5, cat:'carboxyl'},
+  {type:'R-NH₂', range:'0.5 ~ 5', min:0.5, max:5, cat:'carboxyl'},
+];
+
+function buildShiftTable(filter) {
+  const tbody = document.querySelector('#shiftTable tbody');
+  tbody.innerHTML = '';
+  const maxPPM = 14;
+  const barTotalW = 280;
+  shiftData.filter(d => filter === 'all' || d.cat === filter).forEach(d => {
+    const tr = document.createElement('tr');
+    const x1 = (d.min / maxPPM) * barTotalW;
+    const w = Math.max(4, ((d.max - d.min) / maxPPM) * barTotalW);
+    // Color by category
+    let color = '#2e86c1';
+    if (d.cat === 'olefinic') color = '#8e44ad';
+    if (d.cat === 'aldehyde') color = '#e74c3c';
+    if (d.cat === 'carboxyl') color = '#e67e22';
+    tr.innerHTML = `<td style="font-weight:600">${d.type}</td>
+      <td>${d.range} ppm</td>
+      <td><div class="shift-bar" style="width:${w}px;margin-left:${x1}px;background:${color}"></div></td>
+      <td>${{aliphatic:'脂肪族',olefinic:'烯/芳',aldehyde:'醛基',carboxyl:'羧/活性'}[d.cat]}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function filterShiftTable() {
+  buildShiftTable(document.getElementById('shiftFilter').value);
+}
+buildShiftTable('all');
+
+// ======= Panel 3: Splitting =======
+const nSlider = document.getElementById('nSlider');
+const nValEl = document.getElementById('nVal');
+const splitDesc = document.getElementById('splitDesc');
+const peakCountEl = document.getElementById('peakCount');
+const intRatioEl = document.getElementById('intRatio');
+const c3 = document.getElementById('c3');
+const ctx3 = c3.getContext('2d');
+
+const splitNames = ['单峰 (singlet)','二重峰 (doublet)','三重峰 (triplet)','四重峰 (quartet)','五重峰 (quintet)','六重峰 (sextet)','七重峰 (septet)'];
+
+function pascalRow(n) {
+  let row = [1];
+  for (let i = 1; i <= n; i++) {
+    let next = [];
+    for (let j = 0; j <= i; j++) {
+      next.push((row[j-1]||0) + (row[j]||0));
+    }
+    row = next;
+  }
+  return row;
+}
+
+function drawSplit() {
+  const n = parseInt(nSlider.value);
+  nValEl.textContent = n;
+  splitDesc.textContent = splitNames[n];
+  const peaks = n + 1;
+  peakCountEl.textContent = peaks;
+  const intensities = pascalRow(n);
+  intRatioEl.textContent = intensities.join(' : ');
+  
+  const W = c3.width, H = c3.height;
+  ctx3.clearRect(0, 0, W, H);
+  ctx3.fillStyle = '#0d1b2a';
+  ctx3.fillRect(0, 0, W, H);
+
+  // Axis
+  ctx3.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx3.lineWidth = 1;
+  ctx3.beginPath(); ctx3.moveTo(60, H-35); ctx3.lineTo(W-30, H-35); ctx3.stroke();
+  ctx3.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx3.font = '12px Cambria Math';
+  ctx3.textAlign = 'center';
+  ctx3.fillText('δ / ppm →', W/2, H-10);
+  ctx3.fillText('(低场)', W-50, H-16);
+  ctx3.fillText('(高场)', 80, H-16);
+
+  const maxInt = Math.max(...intensities);
+  const totalW = W - 120;
+  const peakW = totalW / (peaks * 2.5);
+  const startX = 60 + (totalW - peaks * peakW * 2) / 2;
+  const baseY = H - 40;
+  const maxH = H - 80;
+
+  intensities.forEach((int, i) => {
+    const h = (int / maxInt) * maxH;
+    const x = startX + i * peakW * 2.2;
+    const grd = ctx3.createLinearGradient(x, baseY, x, baseY - h);
+    grd.addColorStop(0, 'rgba(46,134,193,0.6)');
+    grd.addColorStop(1, 'rgba(46,204,113,0.95)');
+    ctx3.fillStyle = grd;
+    ctx3.beginPath();
+    // Gaussian-like peak
+    const pw = peakW;
+    ctx3.moveTo(x - pw*1.2, baseY);
+    ctx3.quadraticCurveTo(x - pw*0.5, baseY - h*0.3, x - pw*0.15, baseY - h);
+    ctx3.quadraticCurveTo(x, baseY - h*1.05, x + pw*0.15, baseY - h);
+    ctx3.quadraticCurveTo(x + pw*0.5, baseY - h*0.3, x + pw*1.2, baseY);
+    ctx3.fill();
+
+    // Label
+    ctx3.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx3.font = '11px Microsoft YaHei';
+    ctx3.textAlign = 'center';
+    ctx3.fillText(int, x, baseY - h - 8);
+  });
+}
+
+nSlider.oninput = drawSplit;
+drawSplit();
+
+// J slider panel
+const jSlider = document.getElementById('jSlider');
+const jValEl = document.getElementById('jVal');
+const c3b = document.getElementById('c3b');
+const ctx3b = c3b.getContext('2d');
+
+function drawJ() {
+  const J = parseFloat(jSlider.value);
+  jValEl.textContent = J.toFixed(1) + ' Hz';
+  const W = c3b.width, H = c3b.height;
+  ctx3b.clearRect(0, 0, W, H);
+  ctx3b.fillStyle = '#0d1b2a';
+  ctx3b.fillRect(0, 0, W, H);
+
+  const cx = W/2, baseY = H - 40, maxH = H - 70;
+  // Draw a doublet with variable J
+  const sep = J * 6;
+  
+  // Peak 1
+  drawGaussianPeak(ctx3b, cx - sep/2, baseY, maxH, 'rgba(46,134,193,0.85)');
+  // Peak 2
+  drawGaussianPeak(ctx3b, cx + sep/2, baseY, maxH, 'rgba(46,204,113,0.85)');
+
+  // J annotation
+  ctx3b.strokeStyle = 'rgba(243,156,18,0.9)';
+  ctx3b.lineWidth = 1.5;
+  const annY = baseY - maxH * 0.55;
+  ctx3b.beginPath();
+  ctx3b.moveTo(cx - sep/2, annY); ctx3b.lineTo(cx + sep/2, annY);
+  ctx3b.stroke();
+  // end ticks
+  ctx3b.beginPath(); ctx3b.moveTo(cx-sep/2, annY-5); ctx3b.lineTo(cx-sep/2, annY+5); ctx3b.stroke();
+  ctx3b.beginPath(); ctx3b.moveTo(cx+sep/2, annY-5); ctx3b.lineTo(cx+sep/2, annY+5); ctx3b.stroke();
+  ctx3b.fillStyle = 'rgba(243,156,18,0.95)';
+  ctx3b.font = '13px Cambria Math';
+  ctx3b.textAlign = 'center';
+  ctx3b.fillText('J = ' + J.toFixed(1) + ' Hz', cx, annY - 8);
+
+  // Axis
+  ctx3b.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx3b.lineWidth = 1;
+  ctx3b.beginPath(); ctx3b.moveTo(40, baseY); ctx3b.lineTo(W-20, baseY); ctx3b.stroke();
+}
+
+function drawGaussianPeak(ctx, cx, baseY, maxH, color) {
+  const pw = 20;
+  const grd = ctx.createLinearGradient(cx, baseY, cx, baseY - maxH);
+  grd.addColorStop(0, 'rgba(0,0,0,0)');
+  grd.addColorStop(0.3, color);
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.moveTo(cx - pw*2, baseY);
+  ctx.quadraticCurveTo(cx - pw*0.8, baseY - maxH*0.4, cx - pw*0.15, baseY - maxH);
+  ctx.quadraticCurveTo(cx, baseY - maxH*1.03, cx + pw*0.15, baseY - maxH);
+  ctx.quadraticCurveTo(cx + pw*0.8, baseY - maxH*0.4, cx + pw*2, baseY);
+  ctx.fill();
+}
+
+jSlider.oninput = drawJ;
+drawJ();
+
+// ======= Panel 4: Ethanol spectrum =======
+const c4 = document.getElementById('c4');
+const ctx4 = c4.getContext('2d');
+const specInfo = document.getElementById('specInfo');
+
+// Ethanol peaks
+const ethanolPeaks = [
+  {label:'—OH', delta:2.6, mult:'s', int:1, color:'#e67e22', desc:'羟基氢 δ ~2.6 (单峰，可变)，常因氢键交换而表现为宽单峰', step:3},
+  {label:'—CH₂—', delta:3.7, mult:'q', int:2, color:'#2e86c1', desc:'亚甲基 δ ~3.7 (四重峰)，被CH₃裂分为q，J≈7 Hz', step:2},
+  {label:'—CH₃', delta:1.2, mult:'t', int:3, color:'#27ae60', desc:'甲基 δ ~1.2 (三重峰)，被CH₂裂分为t，J≈7 Hz', step:1},
+];
+
+function drawEthanolSpectrum(highlight) {
+  const W = c4.width, H = c4.height;
+  ctx4.clearRect(0, 0, W, H);
+  ctx4.fillStyle = '#0d1b2a';
+  ctx4.fillRect(0, 0, W, H);
+
+  const margin = {l:60, r:30, t:30, b:50};
+  const plotW = W - margin.l - margin.r;
+  const plotH = H - margin.t - margin.b;
+  const baseY = margin.t + plotH;
+  const ppmMin = 0, ppmMax = 6;
+
+  // Axis
+  ctx4.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx4.lineWidth = 1;
+  ctx4.beginPath(); ctx4.moveTo(margin.l, baseY); ctx4.lineTo(W-margin.r, baseY); ctx4.stroke();
+  
+  // PPM ticks
+  ctx4.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx4.font = '11px Cambria Math';
+  ctx4.textAlign = 'center';
+  for (let p = 0; p <= 6; p++) {
+    const x = margin.l + ((ppmMax - p) / (ppmMax - ppmMin)) * plotW;
+    ctx4.fillText(p, x, baseY + 18);
+    ctx4.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx4.beginPath(); ctx4.moveTo(x, margin.t); ctx4.lineTo(x, baseY); ctx4.stroke();
+  }
+  ctx4.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx4.font = '13px Cambria Math';
+  ctx4.fillText('δ / ppm', W/2, baseY + 40);
+  ctx4.fillText('(低场) →', W - margin.r - 20, baseY + 28);
+
+  // Integration lines baseline
+  const intY = margin.t + 10;
+  
+  // Draw peaks
+  ethanolPeaks.forEach((pk, idx) => {
+    const cx = margin.l + ((ppmMax - pk.delta) / (ppmMax - ppmMin)) * plotW;
+    const isHL = highlight === idx;
+    const baseAlpha = isHL ? 1 : 0.7;
+    const peakMaxH = plotH * 0.7;
+
+    // Multiplicity
+    let subPeaks = [];
+    if (pk.mult === 't') {
+      subPeaks = [{x:cx-8, h:0.33}, {x:cx, h:1}, {x:cx+8, h:0.33}];
+    } else if (pk.mult === 'q') {
+      subPeaks = [{x:cx-12, h:0.25}, {x:cx-4, h:0.75}, {x:cx+4, h:0.75}, {x:cx+12, h:0.25}];
+    } else {
+      subPeaks = [{x:cx, h:1}];
+    }
+
+    subPeaks.forEach(sp => {
+      const ph = sp.h * peakMaxH;
+      const pw = isHL ? 14 : 11;
+      ctx4.fillStyle = isHL ? pk.color : pk.color + 'bb';
+      ctx4.beginPath();
+      ctx4.moveTo(sp.x - pw*1.8, baseY);
+      ctx4.quadraticCurveTo(sp.x - pw*0.7, baseY - ph*0.3, sp.x - pw*0.15, baseY - ph);
+      ctx4.quadraticCurveTo(sp.x, baseY - ph*1.04, sp.x + pw*0.15, baseY - ph);
+      ctx4.quadraticCurveTo(sp.x + pw*0.7, baseY - ph*0.3, sp.x + pw*1.8, baseY);
+      ctx4.fill();
+    });
+
+    // Label
+    ctx4.fillStyle = isHL ? '#fff' : 'rgba(255,255,255,0.7)';
+    ctx4.font = isHL ? 'bold 13px Microsoft YaHei' : '12px Microsoft YaHei';
+    ctx4.textAlign = 'center';
+    ctx4.fillText(pk.label, cx, baseY - peakMaxH - 12);
+
+    // Integration step
+    if (pk.int) {
+      const intStepH = 18 * pk.int;
+      const ix = cx + 40;
+      ctx4.strokeStyle = isHL ? pk.color : 'rgba(255,255,255,0.35)';
+      ctx4.lineWidth = isHL ? 2 : 1;
+      ctx4.beginPath();
+      ctx4.moveTo(ix, intY);
+      ctx4.lineTo(ix, intY + intStepH);
+      ctx4.stroke();
+      if (isHL) {
+        ctx4.fillStyle = pk.color;
+        ctx4.font = '11px Microsoft YaHei';
+        ctx4.fillText(pk.int + 'H', ix, intY - 4);
+      }
+    }
+  });
+
+  // Title
+  ctx4.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx4.font = '12px Microsoft YaHei';
+  ctx4.textAlign = 'left';
+  ctx4.fillText('CH₃CH₂OH  ¹H NMR (300 MHz, CDCl₃)', margin.l, margin.t + 10);
+}
+
+drawEthanolSpectrum(-1);
+
+// Click interaction
+c4.addEventListener('click', function(e) {
+  const rect = c4.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const margin = {l:60, r:30};
+  const plotW = c4.width - margin.l - margin.r;
+  const ppmMax = 6;
+  
+  let closest = -1, minDist = 999;
+  ethanolPeaks.forEach((pk, idx) => {
+    const cx = margin.l + ((ppmMax - pk.delta) / ppmMax) * plotW;
+    if (Math.abs(mx - cx) < 40 && Math.abs(mx - cx) < minDist) {
+      minDist = Math.abs(mx - cx);
+      closest = idx;
+    }
+  });
+  
+  drawEthanolSpectrum(closest);
+  if (closest >= 0) {
+    const pk = ethanolPeaks[closest];
+    document.getElementById('peakDetail').innerHTML = 
+      `<div class="info-box"><strong style="color:${pk.color}">${pk.label}</strong> &nbsp;|&nbsp; ${pk.desc}</div>`;
+  } else {
+    document.getElementById('peakDetail').innerHTML = '';
+  }
+});
+
+// Hover info
+c4.addEventListener('mousemove', function(e) {
+  const rect = c4.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const margin = {l:60, r:30};
+  const plotW = c4.width - margin.l - margin.r;
+  const ppmMax = 6;
+  
+  ethanolPeaks.forEach((pk, idx) => {
+    const cx = margin.l + ((ppmMax - pk.delta) / ppmMax) * plotW;
+    if (Math.abs(mx - cx) < 40) {
+      specInfo.style.display = 'block';
+      specInfo.style.left = (e.clientX - rect.left + 10) + 'px';
+      specInfo.style.top = (e.clientY - rect.top - 30) + 'px';
+      specInfo.textContent = pk.label + ' | δ ' + pk.delta + ' ppm | ' + pk.mult;
+      c4.style.cursor = 'pointer';
+    }
+  });
+  // Check if not near any peak
+  let near = false;
+  ethanolPeaks.forEach(pk => {
+    const cx = margin.l + ((ppmMax - pk.delta) / 6) * plotW;
+    if (Math.abs(mx - cx) < 40) near = true;
+  });
+  if (!near) {
+    specInfo.style.display = 'none';
+    c4.style.cursor = 'default';
+  }
+});
+
+c4.addEventListener('mouseleave', () => { specInfo.style.display = 'none'; });
+
+// Steps
+const steps = [
+  {n:1, title:'观察积分曲线', desc:'从积分比获取各组氢的相对数目：3:2:1 → CH₃ : CH₂ : OH'},
+  {n:2, title:'分析裂分模式', desc:'δ 1.2 三重峰 → 相邻2个H；δ 3.7 四重峰 → 相邻3个H；δ 2.6 单峰 → 无相邻H'},
+  {n:3, title:'确定化学位移归属', desc:'δ 1.2 → 脂肪族CH₃；δ 3.7 → 连O的CH₂；δ 2.6 → 活性氢OH'},
+  {n:4, title:'组合推导结构', desc:'CH₃-CH₂-OH → 乙醇，与分子式一致 ✓'},
+];
+
+const stepsContainer = document.getElementById('stepsContainer');
+steps.forEach((s, i) => {
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex;gap:14px;align-items:flex-start;margin:10px 0;cursor:pointer;padding:10px;border-radius:8px;transition:background .2s;';
+  div.innerHTML = `<div style="width:32px;height:32px;border-radius:50%;background:${i<3?'var(--accent)':'var(--success)'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">${s.n}</div>
+    <div><strong>${s.title}</strong><br><span style="font-size:13px;color:var(--muted)">${s.desc}</span></div>`;
+  div.addEventListener('click', function() {
+    // Highlight corresponding peak
+    if (s.n <= 3) drawEthanolSpectrum(s.n - 1);
+    else drawEthanolSpectrum(-1);
+  });
+  div.addEventListener('mouseenter', function() { this.style.background = '#eaf2f8'; });
+  div.addEventListener('mouseleave', function() { this.style.background = ''; });
+  stepsContainer.appendChild(div);
+});
+
+// ======= Panel 5: Relaxation =======
+const c5a = document.getElementById('c5a');
+const ctx5a = c5a.getContext('2d');
+const c5b = document.getElementById('c5b');
+const ctx5b = c5b.getContext('2d');
+let relaxT = 0, relaxing = false, relaxStart = 0;
+
+function startRelaxation() {
+  relaxing = true;
+  relaxStart = performance.now();
+}
+
+function drawRelaxation() {
+  const now = performance.now();
+  if (relaxing) relaxT = (now - relaxStart) / 1000;
+
+  // T1
+  const W1 = c5a.width, H1 = c5a.height;
+  ctx5a.clearRect(0, 0, W1, H1);
+  ctx5a.fillStyle = '#0d1b2a';
+  ctx5a.fillRect(0, 0, W1, H1);
+
+  const T1 = 1.5;
+  const mz = relaxing ? 1 - Math.exp(-relaxT / T1) : 0;
+  
+  // Mz graph
+  ctx5a.strokeStyle = 'rgba(46,134,193,0.4)';
+  ctx5a.lineWidth = 1;
+  ctx5a.beginPath(); ctx5a.moveTo(40, H1-30); ctx5a.lineTo(W1-20, H1-30); ctx5a.stroke();
+  ctx5a.beginPath(); ctx5a.moveTo(40, 30); ctx5a.lineTo(40, H1-30); ctx5a.stroke();
+  ctx5a.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx5a.font = '10px Cambria Math';
+  ctx5a.textAlign = 'center';
+  ctx5a.fillText('M₀', 30, 36);
+  ctx5a.fillText('0', 30, H1-22);
+  ctx5a.fillText('t', W1-12, H1-18);
+
+  // Recovery curve
+  ctx5a.strokeStyle = 'rgba(46,204,113,0.9)';
+  ctx5a.lineWidth = 2;
+  ctx5a.beginPath();
+  for (let x = 0; x < (relaxing ? Math.min(relaxT, 5) : 5); x += 0.05) {
+    const px = 40 + (x / 5) * (W1 - 60);
+    const py = (H1 - 30) - ((1 - Math.exp(-x / T1)) * (H1 - 70));
+    x === 0 ? ctx5a.moveTo(px, py) : ctx5a.lineTo(px, py);
+  }
+  ctx5a.stroke();
+
+  // Current point
+  if (relaxing && relaxT < 5) {
+    const px = 40 + (relaxT / 5) * (W1 - 60);
+    const py = (H1 - 30) - (mz * (H1 - 70));
+    ctx5a.fillStyle = '#e74c3c';
+    ctx5a.beginPath(); ctx5a.arc(px, py, 5, 0, Math.PI*2); ctx5a.fill();
+  }
+
+  ctx5a.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx5a.font = '11px Microsoft YaHei';
+  ctx5a.textAlign = 'center';
+  ctx5a.fillText('Mz 恢复: ' + (mz*100).toFixed(0) + '%', W1/2, 20);
+
+  // T2
+  const W2 = c5b.width, H2 = c5b.height;
+  ctx5b.clearRect(0, 0, W2, H2);
+  ctx5b.fillStyle = '#0d1b2a';
+  ctx5b.fillRect(0, 0, W2, H2);
+
+  const T2 = 0.8;
+  const mxy = relaxing ? Math.exp(-relaxT / T2) : 1;
+  
+  ctx5b.strokeStyle = 'rgba(46,134,193,0.4)';
+  ctx5b.lineWidth = 1;
+  ctx5b.beginPath(); ctx5b.moveTo(40, H2/2); ctx5b.lineTo(W2-20, H2/2); ctx5b.stroke();
+  ctx5b.beginPath(); ctx5b.moveTo(40, 30); ctx5b.lineTo(40, H2-30); ctx5b.stroke();
+  ctx5b.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx5b.font = '10px Cambria Math';
+  ctx5b.textAlign = 'center';
+  ctx5b.fillText('Mxy', 26, 36);
+  ctx5b.fillText('0', 30, H2/2+12);
+
+  // FID-like decay
+  ctx5b.strokeStyle = 'rgba(155,89,182,0.9)';
+  ctx5b.lineWidth = 2;
+  ctx5b.beginPath();
+  for (let x = 0; x < (relaxing ? Math.min(relaxT, 5) : 5); x += 0.02) {
+    const px = 40 + (x / 5) * (W2 - 60);
+    const amp = Math.exp(-x / T2);
+    const py = H2/2 - amp * (H2/2 - 40) * Math.cos(x * 15);
+    x === 0 ? ctx5b.moveTo(px, py) : ctx5b.lineTo(px, py);
+  }
+  ctx5b.stroke();
+
+  // Envelope
+  ctx5b.strokeStyle = 'rgba(231,76,60,0.6)';
+  ctx5b.lineWidth = 1;
+  ctx5b.setLineDash([5,3]);
+  ctx5b.beginPath();
+  for (let x = 0; x < 5; x += 0.05) {
+    const px = 40 + (x / 5) * (W2 - 60);
+    const py = H2/2 - Math.exp(-x / T2) * (H2/2 - 40);
+    x === 0 ? ctx5b.moveTo(px, py) : ctx5b.lineTo(px, py);
+  }
+  ctx5b.stroke();
+  ctx5b.beginPath();
+  for (let x = 0; x < 5; x += 0.05) {
+    const px = 40 + (x / 5) * (W2 - 60);
+    const py = H2/2 + Math.exp(-x / T2) * (H2/2 - 40);
+    x === 0 ? ctx5b.moveTo(px, py) : ctx5b.lineTo(px, py);
+  }
+  ctx5b.stroke();
+  ctx5b.setLineDash([]);
+
+  ctx5b.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx5b.font = '11px Microsoft YaHei';
+  ctx5b.textAlign = 'center';
+  ctx5b.fillText('Mxy 衰减: ' + (mxy*100).toFixed(0) + '%', W2/2, 20);
+
+  if (relaxing && relaxT > 6) relaxing = false;
+  requestAnimationFrame(drawRelaxation);
+}
+drawRelaxation();
+</script>
+</body>
+</html>

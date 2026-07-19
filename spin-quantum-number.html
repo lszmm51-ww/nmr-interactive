@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>自旋量子数 I — 交互式数字增强资源</title>
+<style>
+  :root {
+    --primary: #1a5276;
+    --accent: #2e86c1;
+    --bg: #f8f9fa;
+    --card: #ffffff;
+    --text: #2c3e50;
+    --muted: #7f8c8d;
+    --border: #dce1e6;
+    --success: #27ae60;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI','Microsoft YaHei',sans-serif; background:var(--bg); color:var(--text); line-height:1.7; }
+
+  .header { background:linear-gradient(135deg,var(--primary),var(--accent)); color:#fff; padding:28px 40px; text-align:center; position:relative; }
+  .header h1 { font-size:28px; font-weight:700; letter-spacing:1px; }
+  .header .watermark { font:bold 28px/1 'SimHei','Microsoft YaHei',sans-serif; color:#111; letter-spacing:3px; flex-shrink:0; }
+
+  .tabs { display:flex; background:#e8ecf1; border-bottom:2px solid var(--border); overflow-x:auto; }
+  .tab { padding:14px 22px; cursor:pointer; font-size:14px; font-weight:600; color:var(--muted); border-bottom:3px solid transparent; transition:all .2s; white-space:nowrap; user-select:none; }
+  .tab:hover { color:var(--primary); background:rgba(46,134,193,.06); }
+  .tab.active { color:var(--primary); border-bottom-color:var(--accent); background:var(--card); }
+
+  .panel { display:none; padding:30px 36px; max-width:1100px; margin:0 auto; }
+  .panel.active { display:block; }
+
+  .section-title { font-size:20px; font-weight:700; color:var(--primary); margin-bottom:18px; padding-bottom:8px; border-bottom:2px solid var(--accent); }
+  .section-subtitle { font-size:16px; font-weight:600; color:var(--accent); margin:16px 0 10px; }
+
+  .card { background:var(--card); border-radius:10px; box-shadow:0 2px 12px rgba(0,0,0,.06); padding:24px; margin-bottom:20px; border:1px solid var(--border); }
+
+  canvas { display:block; margin:0 auto; border-radius:8px; background:#0d1b2a; }
+
+  .controls { display:flex; flex-wrap:wrap; gap:12px; margin-top:16px; align-items:center; justify-content:center; }
+  .btn { padding:8px 20px; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; transition:all .15s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:var(--primary); }
+  .btn-outline { background:transparent; border:2px solid var(--accent); color:var(--accent); }
+  .btn-outline:hover { background:var(--accent); color:#fff; }
+  .btn-outline.active { background:var(--accent); color:#fff; }
+
+  .slider-group { display:flex; align-items:center; gap:10px; }
+  .slider-group label { font-size:13px; font-weight:600; min-width:90px; text-align:right; }
+  .slider-group input[type=range] { flex:1; max-width:200px; }
+  .slider-group .val { font-size:13px; color:var(--accent); min-width:50px; font-weight:700; }
+
+  .info-box { background:#eaf2f8; border-left:4px solid var(--accent); padding:14px 18px; border-radius:0 8px 8px 0; margin:14px 0; font-size:14px; }
+  .info-box strong { color:var(--primary); }
+
+  .nucleus-selector { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:14px 0; }
+  .nucleus-btn { padding:10px 14px; border:2px solid var(--border); background:#fff; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600; transition:all .15s; }
+  .nucleus-btn:hover { border-color:var(--accent); }
+  .nucleus-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+  .nucleus-btn.i-zero { color:var(--muted); }
+  .nucleus-btn.i-half { color:var(--success); }
+  .nucleus-btn.i-integer { color:var(--warning); }
+  .nucleus-btn.i-quad { color:var(--danger); }
+  .nucleus-btn.i-zero.active { background:var(--muted); border-color:var(--muted); }
+  .nucleus-btn.i-half.active { background:var(--success); border-color:var(--success); }
+  .nucleus-btn.i-integer.active { background:var(--warning); border-color:var(--warning); }
+  .nucleus-btn.i-quad.active { background:var(--danger); border-color:var(--danger); }
+
+  .formula { font-family:'Cambria Math','Times New Roman',serif; font-style:italic; background:#fef9e7; padding:2px 6px; border-radius:3px; }
+
+  table.nuclei-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+  .nuclei-table th { background:var(--primary); color:#fff; padding:9px 12px; text-align:left; }
+  .nuclei-table td { padding:8px 12px; border-bottom:1px solid var(--border); }
+  .nuclei-table tr:hover td { background:#eaf2f8; }
+
+  .i-badge { display:inline-block; padding:2px 8px; border-radius:10px; color:#fff; font-weight:700; font-size:12px; }
+  .i-badge.zero { background:#95a5a6; }
+  .i-badge.half { background:#27ae60; }
+  .i-badge.integer { background:#f39c12; }
+  .i-badge.quad { background:#e74c3c; }
+
+  @media(max-width:768px) {
+    .panel { padding:18px 14px; }
+    .header h1 { font-size:22px; }
+    canvas { max-width:100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>自旋量子数 I 的形象化</h1>
+  <p style="display:flex;align-items:center;justify-content:center;gap:30px;">交互式数字增强资源 — 仪器分析数字出版物样章 <span class="watermark">王葳制作</span></p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-panel="p1">核子配对模型</div>
+  <div class="tab" data-panel="p2">能级分裂</div>
+  <div class="tab" data-panel="p3">常见核素对照</div>
+</div>
+
+<!-- ============ Panel 1: 核子配对模型 ============ -->
+<div class="panel active" id="p1">
+  <div class="section-title">原子核的自旋来源 — 核子配对模型</div>
+
+  <div class="card">
+    <div class="section-subtitle">核内质子与中子的自旋配对</div>
+    <p style="font-size:14px;margin-bottom:12px;">原子核由质子（p，正电荷）和中子（n，电中性）构成，每个核子都有自旋 1/2。质子之间、中子之间倾向于<strong>自旋相反地两两配对</strong>，配对的核子自旋相互抵消。只有<strong>未配对</strong>的核子贡献净自旋，决定原子核的自旋量子数 I。</p>
+    <p style="font-size:14px;margin-bottom:12px;">选择下方不同核素，观察核内配对情况：</p>
+
+    <div class="nucleus-selector" id="nucSel"></div>
+
+    <canvas id="c1" width="800" height="380"></canvas>
+    <div class="canvas-label" style="text-align:center;font-size:13px;color:var(--muted);margin-top:6px;" id="c1Label"></div>
+
+    <div class="info-box" id="nucInfo"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">自旋量子数 I 的判定规则</div>
+    <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:8px;">
+      <thead>
+        <tr style="background:var(--primary);color:#fff;">
+          <th style="padding:10px;">质子数 Z</th>
+          <th style="padding:10px;">中子数 N</th>
+          <th style="padding:10px;">I 取值</th>
+          <th style="padding:10px;">NMR 信号</th>
+          <th style="padding:10px;">典型核</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td style="padding:8px;text-align:center;">偶</td><td style="padding:8px;text-align:center;">偶</td><td style="padding:8px;text-align:center;"><span class="i-badge zero">I = 0</span></td><td style="padding:8px;text-align:center;">无</td><td style="padding:8px;">¹²C, ¹⁶O, ³²S</td></tr>
+        <tr style="background:#f8f9fa;"><td style="padding:8px;text-align:center;">奇</td><td style="padding:8px;text-align:center;">偶</td><td style="padding:8px;text-align:center;"><span class="i-badge half">半整数</span></td><td style="padding:8px;text-align:center;">有</td><td style="padding:8px;">¹H, ¹⁹F, ³¹P, ¹³C</td></tr>
+        <tr><td style="padding:8px;text-align:center;">偶</td><td style="padding:8px;text-align:center;">奇</td><td style="padding:8px;text-align:center;"><span class="i-badge half">半整数</span></td><td style="padding:8px;text-align:center;">有</td><td style="padding:8px;">²H(I=1)、¹⁵N(I=1/2)</td></tr>
+        <tr style="background:#f8f9fa;"><td style="padding:8px;text-align:center;">奇</td><td style="padding:8px;text-align:center;">奇</td><td style="padding:8px;text-align:center;"><span class="i-badge integer">整数</span></td><td style="padding:8px;text-align:center;">有</td><td style="padding:8px;">¹⁴N(I=1)、²H(I=1)</td></tr>
+      </tbody>
+    </table>
+    <div class="info-box" style="margin-top:14px;">
+      <strong>关键认识：</strong>I = 1/2 的核电荷呈球对称分布，谱线窄，最适宜 NMR 研究；I ≥ 1 的核具有电四极矩，常导致谱线增宽。
+    </div>
+  </div>
+</div>
+
+<!-- ============ Panel 2: 能级分裂 ============ -->
+<div class="panel" id="p2">
+  <div class="section-title">外磁场中的能级分裂 — 2I+1 规则</div>
+
+  <div class="card">
+    <div class="section-subtitle">塞曼分裂与磁量子数 m<sub>I</sub></div>
+    <p style="font-size:14px;margin-bottom:12px;">自旋量子数为 I 的核置于外磁场 B<sub>0</sub> 中，自旋角动量在磁场方向的分量量子化为 <span class="formula">m<sub>I</sub> = −I, −I+1, ..., I−1, I</span>，共 <strong>2I+1</strong> 个取值，对应 <strong>2I+1</strong> 个能级（塞曼分裂）。</p>
+
+    <div class="slider-group" style="justify-content:center;margin:16px 0;">
+      <label>自旋量子数 I</label>
+      <select id="iSelect" style="padding:6px 12px;border-radius:6px;border:2px solid var(--accent);font-size:14px;font-weight:600;">
+        <option value="0">0</option>
+        <option value="0.5" selected>1/2</option>
+        <option value="1">1</option>
+        <option value="1.5">3/2</option>
+        <option value="2">2</option>
+        <option value="2.5">5/2</option>
+      </select>
+      <span style="margin-left:20px;font-size:14px;">能级数：<strong id="levelCount" style="color:var(--accent);">2</strong></span>
+      <span style="margin-left:14px;font-size:14px;">允许跃迁：<strong id="transCount" style="color:var(--success);">1</strong></span>
+    </div>
+
+    <div class="slider-group" style="justify-content:center;margin:10px 0;">
+      <label>磁场 B<sub>0</sub> / T</label>
+      <input type="range" id="b0Slider2" min="0" max="20" value="7" step="0.5">
+      <span class="val" id="b0Val2">7.0 T</span>
+    </div>
+
+    <canvas id="c2" width="700" height="340"></canvas>
+    <div class="canvas-label" style="text-align:center;font-size:13px;color:var(--muted);margin-top:6px;">
+      蓝色箭头：允许跃迁（Δm<sub>I</sub> = ±1） | 红色虚线：高场下能级间距增大
+    </div>
+
+    <div class="info-box" id="levelInfo"></div>
+  </div>
+
+  <div class="card">
+    <div class="section-subtitle">跃迁选择定则与共振条件</div>
+    <p style="font-size:14px;">NMR 允许跃迁遵循选择定则 <span class="formula">Δm<sub>I</sub> = ±1</span>，即只能相邻能级间跃迁。共振频率：</p>
+    <div style="text-align:center;margin:14px 0;font-size:18px;">
+      <span class="formula">ν = γB<sub>0</sub> / (2π)</span>
+    </div>
+    <p style="font-size:14px;">相邻能级能量差 ΔE = γħB<sub>0</sub>，与 I 本身大小无关；但 I 决定了能级数目与跃迁数。I = 1/2 → 1 条谱线；I = 1 → 1 条谱线（双量子禁阻）；I ≥ 1 的核还可能因四极相互作用产生额外分裂。</p>
+  </div>
+</div>
+
+<!-- ============ Panel 3: 常见核素对照 ============ -->
+<div class="panel" id="p3">
+  <div class="section-title">常见 NMR 核素对照表</div>
+
+  <div class="card">
+    <div class="section-subtitle">按 I 类型筛选</div>
+    <div style="margin-bottom:12px;">
+      <button class="btn btn-outline active" onclick="filterNuclei('all', this)" style="margin-right:6px;">全部</button>
+      <button class="btn btn-outline" onclick="filterNuclei('0', this)" style="margin-right:6px;color:#95a5a6;">I = 0</button>
+      <button class="btn btn-outline" onclick="filterNuclei('0.5', this)" style="margin-right:6px;color:var(--success);">半整数（I=1/2）</button>
+      <button class="btn btn-outline" onclick="filterNuclei('integer', this)" style="margin-right:6px;color:var(--warning);">整数</button>
+      <button class="btn btn-outline" onclick="filterNuclei('quad', this)" style="color:var(--danger);">四极矩 (I≥1)</button>
+    </div>
+
+    <table class="nuclei-table" id="nucleiTable">
+      <thead>
+        <tr><th>核素</th><th>Z</th><th>N</th><th>I</th><th>γ / (10⁷ rad·s⁻¹·T⁻¹)</th><th>天然丰度 / %</th><th>相对灵敏度*</th><th>NMR 适用性</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px;">* 相对灵敏度：相同磁场、相同核数下相对于 ¹H 的灵敏度（已扣除天然丰度影响）</p>
+
+    <div class="info-box" style="margin-top:14px;">
+      <strong>选核建议：</strong>¹H、¹⁹F、³¹P、¹³C（I=1/2）是日常 NMR 首选；²H(I=1) 常用作氘代溶剂锁场；¹⁴N(I=1) 因四极矩宽峰不利检测，需 ¹⁵N 富集。I = 0 的核（如 ¹²C、¹⁶O）无 NMR 信号，是天然丰度主成分。
+    </div>
+  </div>
+</div>
+
+<script>
+// ======= Tab switching =======
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.panel).classList.add('active');
+  });
+});
+
+// ======= Nucleus data =======
+const nuclei = [
+  {sym:'¹H', name:'氢-1', Z:1, N:0, I:0.5, gamma:26.752, abund:99.985, sens:1.000, pair:[{t:'p',unpaired:true}], note:'NMR 最灵敏核，应用最广'},
+  {sym:'²H', name:'氘', Z:1, N:1, I:1, gamma:4.107, abund:0.015, sens:0.0096, pair:[{t:'p',unpaired:true},{t:'n',unpaired:true}], note:'氘代溶剂锁场用'},
+  {sym:'¹²C', name:'碳-12', Z:6, N:6, I:0, gamma:0, abund:98.9, sens:0, pair:[], note:'无 NMR 信号'},
+  {sym:'¹³C', name:'碳-13', Z:6, N:7, I:0.5, gamma:6.728, abund:1.1, sens:0.0159, note:'有机结构解析核心核'},
+  {sym:'¹⁴N', name:'氮-14', Z:7, N:7, I:1, gamma:1.933, abund:99.6, sens:0.0010, pair:[{t:'p',unpaired:true},{t:'n',unpaired:true}], note:'四极矩致谱线宽'},
+  {sym:'¹⁵N', name:'氮-15', Z:7, N:8, I:0.5, gamma:-2.713, abund:0.37, sens:0.00037, note:'灵敏度低，需富集'},
+  {sym:'¹⁶O', name:'氧-16', Z:8, N:8, I:0, gamma:0, abund:99.76, sens:0, pair:[], note:'无 NMR 信号'},
+  {sym:'¹⁷O', name:'氧-17', Z:8, N:9, I:2.5, gamma:-3.628, abund:0.038, sens:0.00006, note:'I=5/2 四极矩核'},
+  {sym:'¹⁹F', name:'氟-19', Z:9, N:10, I:0.5, gamma:25.181, abund:100, sens:0.834, note:'高灵敏度，药物分析'},
+  {sym:'³¹P', name:'磷-31', Z:15, N:16, I:0.5, gamma:10.841, abund:100, sens:0.0665, note:'生物分子常用'},
+  {sym:'²⁷Al', name:'铝-27', Z:13, N:14, I:2.5, gamma:6.976, abund:100, sens:0.207, note:'I=5/2，固体NMR常用'},
+];
+
+// ======= Panel 1: 配对模型 =======
+const nucSel = document.getElementById('nucSel');
+const c1 = document.getElementById('c1');
+const ctx1 = c1.getContext('2d');
+let currentNuc = nuclei[0];
+
+function buildNucleusSelector() {
+  nucSel.innerHTML = '';
+  // Show a representative subset
+  const shown = ['¹H','²H','¹²C','¹³C','¹⁴N','¹⁹F','¹⁷O'];
+  nuclei.filter(n => shown.includes(n.sym)).forEach(n => {
+    const btn = document.createElement('button');
+    btn.className = 'nucleus-btn';
+    let cls = 'i-zero';
+    if (n.I === 0.5) cls = 'i-half';
+    else if (n.I === 0) cls = 'i-zero';
+    else if (n.I === 1) cls = 'i-integer';
+    else cls = 'i-quad';
+    btn.classList.add(cls);
+    btn.textContent = n.sym + ' (I=' + (n.I === 0.5 ? '1/2' : n.I === 1.5 ? '3/2' : n.I === 2.5 ? '5/2' : n.I) + ')';
+    btn.onclick = () => {
+      currentNuc = n;
+      document.querySelectorAll('#nucSel .nucleus-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      drawNucleusPairing();
+    };
+    if (n.sym === currentNuc.sym) btn.classList.add('active');
+    nucSel.appendChild(btn);
+  });
+}
+
+let animT = 0;
+function drawNucleusPairing() {
+  animT += 0.04;
+  const W = c1.width, H = c1.height;
+  ctx1.clearRect(0, 0, W, H);
+  ctx1.fillStyle = '#0d1b2a';
+  ctx1.fillRect(0, 0, W, H);
+
+  const n = currentNuc;
+  const cx = W * 0.5, cy = H * 0.5;
+
+  // Title
+  ctx1.fillStyle = '#fff';
+  ctx1.font = 'bold 20px Microsoft YaHei';
+  ctx1.textAlign = 'center';
+  ctx1.fillText(n.sym + '  ' + n.name + '   (Z=' + n.Z + ', N=' + n.N + ', I=' + (n.I === 0.5 ? '1/2' : n.I === 1.5 ? '3/2' : n.I === 2.5 ? '5/2' : n.I) + ')', cx, 30);
+
+  // Build nucleon list: arrange protons and neutrons in pairs
+  // Total nucleons = Z + N (cap visualization to reasonable number)
+  const totalNuc = n.Z + n.N;
+  // If too many, show symbolically
+  if (totalNuc > 20) {
+    // Symbolic view: show pairs abstractly
+    drawSymbolicNucleus(ctx1, cx, cy, n);
+  } else {
+    drawDetailedNucleus(ctx1, cx, cy, n);
+  }
+
+  // Info update
+  updateNucInfo();
+  requestAnimationFrame(drawNucleusPairing);
+}
+
+function drawDetailedNucleus(ctx, cx, cy, n) {
+  // Arrange protons and neutrons in a circle pattern, pairs (one p + opposite spin)
+  // Group: protons paired (spin up/down), neutrons paired (spin up/down), plus unpaired
+  const protons = [];
+  for (let i = 0; i < n.Z; i++) protons.push({type:'p'});
+  const neutrons = [];
+  for (let i = 0; i < n.N; i++) neutrons.push({type:'n'});
+
+  // Pair them
+  const pPairs = Math.floor(n.Z / 2);
+  const pUnpaired = n.Z % 2;
+  const nPairs = Math.floor(n.N / 2);
+  const nUnpaired = n.N % 2;
+
+  // Layout: arrange around a central cluster
+  const allParticles = [];
+  // Pairs of protons (paired, opposite spin)
+  for (let i = 0; i < pPairs; i++) {
+    allParticles.push({type:'p', paired:true, spin:1});
+    allParticles.push({type:'p', paired:true, spin:-1});
+  }
+  if (pUnpaired) allParticles.push({type:'p', paired:false, spin:1});
+  // Pairs of neutrons
+  for (let i = 0; i < nPairs; i++) {
+    allParticles.push({type:'n', paired:true, spin:1});
+    allParticles.push({type:'n', paired:true, spin:-1});
+  }
+  if (nUnpaired) allParticles.push({type:'n', paired:false, spin:1});
+
+  // Arrange in concentric rings
+  const total = allParticles.length;
+  const baseR = 35;
+  const ringSpacing = 26;
+  
+  // Simple ring layout
+  const particlesPerRing = [1, 6, 10, 14, 18];
+  let placed = 0, ringIdx = 0;
+  const rings = [];
+  while (placed < total) {
+    const cap = ringIdx === 0 ? 1 : particlesPerRing[ringIdx] || (particlesPerRing[particlesPerRing.length-1] + ringIdx*4);
+    const inThisRing = Math.min(cap, total - placed);
+    rings.push({count: inThisRing, r: baseR + ringIdx * ringSpacing, items: allParticles.slice(placed, placed + inThisRing)});
+    placed += inThisRing;
+    ringIdx++;
+  }
+
+  let idx = 0;
+  rings.forEach((ring, ri) => {
+    for (let i = 0; i < ring.count; i++) {
+      const angle = (i / ring.count) * Math.PI * 2 + animT * 0.2 * (ri % 2 === 0 ? 1 : -1);
+      const px = cx + Math.cos(angle) * ring.r;
+      const py = cy + Math.sin(angle) * ring.r;
+      const p = ring.items[i];
+      drawNucleon(ctx, px, py, p.type, p.paired, p.spin);
+      idx++;
+    }
+  });
+}
+
+function drawSymbolicNucleus(ctx, cx, cy, n) {
+  // For heavy nuclei, show grouped representation
+  const pPairs = Math.floor(n.Z / 2);
+  const pUnpaired = n.Z % 2;
+  const nPairs = Math.floor(n.N / 2);
+  const nUnpaired = n.N % 2;
+
+  // Draw a large core nucleus with abstract pair representation
+  ctx.fillStyle = 'rgba(46,134,193,0.15)';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 70, 0, Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(46,134,193,0.4)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Show pairs as paired dots in center
+  const pairCount = pPairs + nPairs;
+  ctx.fillStyle = '#fff';
+  ctx.font = '13px Microsoft YaHei';
+  ctx.textAlign = 'center';
+  ctx.fillText('配对核子', cx, cy - 10);
+  ctx.font = 'bold 18px Cambria Math';
+  ctx.fillText(pairCount + ' 对', cx, cy + 12);
+  ctx.font = '11px Microsoft YaHei';
+  ctx.fillText('(自旋相互抵消)', cx, cy + 30);
+
+  // Show unpaired around
+  const unpaired = [];
+  if (pUnpaired) unpaired.push({type:'p'});
+  if (nUnpaired) unpaired.push({type:'n'});
+  
+  unpaired.forEach((u, i) => {
+    const angle = (i / unpaired.length) * Math.PI * 2 - Math.PI/2 + animT * 0.5;
+    const px = cx + Math.cos(angle) * 110;
+    const py = cy + Math.sin(angle) * 110;
+    drawNucleon(ctx, px, py, u.type, false, 1);
+    // pulse ring
+    const pulse = 0.5 + 0.5*Math.sin(animT*3);
+    ctx.strokeStyle = `rgba(231,76,60,${pulse * 0.7})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(px, py, 18 + pulse*4, 0, Math.PI*2);
+    ctx.stroke();
+  });
+
+  if (unpaired.length === 0) {
+    ctx.fillStyle = '#e74c3c';
+    ctx.font = 'bold 14px Microsoft YaHei';
+    ctx.textAlign = 'center';
+    ctx.fillText('无未配对核子 → I = 0', cx, cy + 90);
+  }
+}
+
+function drawNucleon(ctx, x, y, type, paired, spin) {
+  const r = 9;
+  const color = type === 'p' ? '#e74c3c' : '#3498db';
+  const label = type === 'p' ? 'p' : 'n';
+  
+  // Body
+  const grd = ctx.createRadialGradient(x-2, y-2, 1, x, y, r);
+  grd.addColorStop(0, lighten(color, 30));
+  grd.addColorStop(1, color);
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI*2);
+  ctx.fill();
+
+  // Label
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, x, y);
+
+  // Spin arrow (if unpaired, larger; if paired, small opposite directions)
+  if (!paired) {
+    // Large arrow showing net spin
+    const arrowLen = 22;
+    const dir = spin > 0 ? -1 : 1;
+    ctx.strokeStyle = '#f1c40f';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y + dir * (r+2));
+    ctx.lineTo(x, y + dir * (r + arrowLen));
+    ctx.stroke();
+    // arrow head
+    ctx.beginPath();
+    ctx.moveTo(x - 4, y + dir * (r + arrowLen - 4));
+    ctx.lineTo(x, y + dir * (r + arrowLen));
+    ctx.lineTo(x + 4, y + dir * (r + arrowLen - 4));
+    ctx.stroke();
+    // pulse ring for unpaired
+    const pulse = 0.5 + 0.5*Math.sin(animT*3);
+    ctx.strokeStyle = `rgba(231,76,60,${pulse * 0.6})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(x, y, r + 4 + pulse*3, 0, Math.PI*2);
+    ctx.stroke();
+  } else {
+    // Small spin indicator (paired = opposite spins cancel)
+    // Show as small curved arrows or just a line indicating cancellation
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y - r - 2);
+    ctx.lineTo(x, y - r - 6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y + r + 2);
+    ctx.lineTo(x, y + r + 6);
+    ctx.stroke();
+  }
+}
+
+function lighten(hex, percent) {
+  const num = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (num >> 16) + percent);
+  const g = Math.min(255, ((num >> 8) & 0xff) + percent);
+  const b = Math.min(255, (num & 0xff) + percent);
+  return `rgb(${r},${g},${b})`;
+}
+
+function updateNucInfo() {
+  const n = currentNuc;
+  const pUnpaired = n.Z % 2;
+  const nUnpaired = n.N % 2;
+  const totalUnpaired = pUnpaired + nUnpaired;
+  const IStr = n.I === 0.5 ? '1/2' : n.I === 1.5 ? '3/2' : n.I === 2.5 ? '5/2' : n.I;
+
+  let html = '<strong>' + n.sym + ' ' + n.name + '</strong><br>';
+  html += '质子数 Z = ' + n.Z + '（' + (n.Z % 2 === 0 ? '偶' : '奇') + '），中子数 N = ' + n.N + '（' + (n.N % 2 === 0 ? '偶' : '奇') + '）<br>';
+  
+  if (n.I === 0) {
+    html += '<strong style="color:#95a5a6">质子和中子全部成对配对，无未配对核子 → I = 0，无 NMR 信号。</strong>';
+  } else {
+    html += '未配对质子：' + pUnpaired + ' 个；未配对中子：' + nUnpaired + ' 个<br>';
+    html += '<strong style="color:' + (n.I === 0.5 ? 'var(--success)' : n.I === 1 ? 'var(--warning)' : 'var(--danger)') + '">净自旋 I = ' + IStr + (n.I === 0.5 ? '（最理想的 NMR 核）' : n.I >= 1 ? '（四极矩核，谱线易增宽）' : '') + '</strong>';
+  }
+  html += '<br><em style="color:var(--muted)">' + n.note + '</em>';
+  document.getElementById('nucInfo').innerHTML = html;
+
+  document.getElementById('c1Label').textContent = 
+    n.I === 0 ? '红色=质子(p)  蓝色=中子(n)  全部成对配对，自旋相互抵消' :
+    '红色=质子(p)  蓝色=中子(n)  黄色箭头=未配对核子的净自旋  红色脉冲环=未配对核子';
+}
+
+buildNucleusSelector();
+drawNucleusPairing();
+
+// ======= Panel 2: 能级分裂 =======
+const c2 = document.getElementById('c2');
+const ctx2 = c2.getContext('2d');
+const iSelect = document.getElementById('iSelect');
+const b0Slider2 = document.getElementById('b0Slider2');
+const b0Val2 = document.getElementById('b0Val2');
+
+function drawEnergyLevels() {
+  const I = parseFloat(iSelect.value);
+  const b0 = parseFloat(b0Slider2.value);
+  b0Val2.textContent = b0.toFixed(1) + ' T';
+  
+  const W = c2.width, H = c2.height;
+  ctx2.clearRect(0, 0, W, H);
+  ctx2.fillStyle = '#0d1b2a';
+  ctx2.fillRect(0, 0, W, H);
+
+  const cx = W / 2;
+  const baseY = H - 60;
+  const topY = 50;
+  const totalLevels = 2 * I + 1;
+  const maxLevels = 6; // I=2.5 → 6 levels
+  const spacing = (baseY - topY) / Math.max(totalLevels, 2);
+
+  document.getElementById('levelCount').textContent = totalLevels;
+  document.getElementById('transCount').textContent = totalLevels - 1;
+
+  // B0 arrow on left
+  ctx2.strokeStyle = '#f39c12';
+  ctx2.lineWidth = 2;
+  ctx2.beginPath();
+  ctx2.moveTo(60, baseY);
+  ctx2.lineTo(60, topY);
+  ctx2.stroke();
+  ctx2.beginPath();
+  ctx2.moveTo(54, topY + 10);
+  ctx2.lineTo(60, topY);
+  ctx2.lineTo(66, topY + 10);
+  ctx2.stroke();
+  ctx2.fillStyle = '#f39c12';
+  ctx2.font = '13px Cambria Math';
+  ctx2.textAlign = 'center';
+  ctx2.fillText('B₀', 60, baseY + 20);
+
+  // Zero-field line (no splitting) on left
+  ctx2.strokeStyle = 'rgba(255,255,255,0.3)';
+  ctx2.lineWidth = 1;
+  ctx2.setLineDash([4,4]);
+  ctx2.beginPath();
+  const zeroY = baseY - (baseY - topY) / 2;
+  ctx2.moveTo(120, zeroY);
+  ctx2.lineTo(180, zeroY);
+  ctx2.stroke();
+  ctx2.setLineDash([]);
+  ctx2.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx2.font = '10px Microsoft YaHei';
+  ctx2.textAlign = 'right';
+  ctx2.fillText('无磁场', 175, zeroY - 5);
+  ctx2.fillText('(简并)', 175, zeroY + 12);
+
+  // Energy levels: mI = -I ... +I, higher mI = lower energy (for positive gamma)
+  // E = -mI * γ * ħ * B0
+  // For visualization, space them by b0
+  const E0 = (baseY + topY) / 2;
+  const splitScale = 8 * b0; // visual scale
+
+  for (let k = 0; k < totalLevels; k++) {
+    const mI = I - k; // from +I down to -I
+    const E = -mI * splitScale; // positive gamma: high mI = low E
+    const y = E0 + E;
+    
+    // Level line
+    const isHighest = (k === 0);
+    const isLowest = (k === totalLevels - 1);
+    let color = '#2ecc71';
+    if (mI > 0) color = '#2ecc71'; // low energy
+    else if (mI < 0) color = '#e74c3c'; // high energy
+    else color = '#f1c40f'; // mI = 0
+
+    ctx2.strokeStyle = color;
+    ctx2.lineWidth = 2.5;
+    ctx2.beginPath();
+    ctx2.moveTo(220, y);
+    ctx2.lineTo(500, y);
+    ctx2.stroke();
+
+    // mI label
+    ctx2.fillStyle = color;
+    ctx2.font = 'bold 13px Cambria Math';
+    ctx2.textAlign = 'right';
+    const mIStr = mI === 0.5 ? '+1/2' : mI === -0.5 ? '-1/2' : mI === 1.5 ? '+3/2' : mI === -1.5 ? '-3/2' : mI === 2.5 ? '+5/2' : mI === -2.5 ? '-5/2' : (mI >= 0 ? '+' + mI : mI);
+    ctx2.fillText('m_I = ' + mIStr, 215, y + 4);
+
+    // Level position label
+    ctx2.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx2.font = '11px Microsoft YaHei';
+    ctx2.textAlign = 'left';
+    ctx2.fillText(k === 0 ? '低能态' : k === totalLevels - 1 ? '高能态' : '', 505, y + 4);
+  }
+
+  // Transitions (ΔmI = ±1)
+  if (totalLevels > 1) {
+    for (let k = 0; k < totalLevels - 1; k++) {
+      const mI_top = I - k; // upper level (higher mI, lower E)
+      const mI_bot = I - (k + 1); // lower level
+      const yTop = E0 - mI_top * splitScale;
+      const yBot = E0 - mI_bot * splitScale;
+      
+      // Arrow
+      ctx2.strokeStyle = '#9b59b6';
+      ctx2.lineWidth = 1.8;
+      const arrowX = 560 + k * 25;
+      ctx2.beginPath();
+      ctx2.moveTo(arrowX, yBot);
+      ctx2.lineTo(arrowX, yTop);
+      ctx2.stroke();
+      // arrowhead (upward)
+      ctx2.beginPath();
+      ctx2.moveTo(arrowX - 4, yTop + 6);
+      ctx2.lineTo(arrowX, yTop);
+      ctx2.lineTo(arrowX + 4, yTop + 6);
+      ctx2.stroke();
+    }
+  }
+
+  // ΔE annotation for first transition
+  if (totalLevels >= 2 && b0 > 0) {
+    const yA = E0 - I * splitScale;
+    const yB = E0 - (I - 1) * splitScale;
+    const midY = (yA + yB) / 2;
+    ctx2.strokeStyle = '#f39c12';
+    ctx2.lineWidth = 1.5;
+    ctx2.setLineDash([3,3]);
+    ctx2.beginPath();
+    ctx2.moveTo(640, yA);
+    ctx2.lineTo(640, yB);
+    ctx2.stroke();
+    ctx2.setLineDash([]);
+    ctx2.beginPath();
+    ctx2.moveTo(635, yA + 4);
+    ctx2.lineTo(640, yA);
+    ctx2.lineTo(645, yA + 4);
+    ctx2.stroke();
+    ctx2.beginPath();
+    ctx2.moveTo(635, yB - 4);
+    ctx2.lineTo(640, yB);
+    ctx2.lineTo(645, yB - 4);
+    ctx2.stroke();
+    
+    ctx2.fillStyle = '#f39c12';
+    ctx2.font = '12px Microsoft YaHei';
+    ctx2.textAlign = 'left';
+    ctx2.fillText('ΔE = γħB₀', 650, midY + 4);
+  }
+
+  // Title
+  ctx2.fillStyle = '#fff';
+  ctx2.font = 'bold 14px Microsoft YaHei';
+  ctx2.textAlign = 'center';
+  ctx2.fillText('I = ' + (I === 0.5 ? '1/2' : I === 1.5 ? '3/2' : I === 2.5 ? '5/2' : I) + '  →  ' + totalLevels + ' 个能级，' + (totalLevels - 1) + ' 个允许跃迁', cx, 25);
+
+  // Update info box
+  let infoHtml = '<strong>当前 I = ' + (I === 0.5 ? '1/2' : I === 1.5 ? '3/2' : I === 2.5 ? '5/2' : I) + '</strong><br>';
+  infoHtml += '磁量子数 m_I 取值：';
+  const mIs = [];
+  for (let k = 0; k < totalLevels; k++) mIs.push(I - k);
+  infoHtml += mIs.map(m => m === 0.5 ? '+1/2' : m === -0.5 ? '-1/2' : m === 1.5 ? '+3/2' : m === -1.5 ? '-3/2' : m === 2.5 ? '+5/2' : m === -2.5 ? '-5/2' : (m >= 0 ? '+' + m : m)).join(', ');
+  infoHtml += '<br>能级数 = 2I+1 = ' + totalLevels + '；允许跃迁数 = ' + (totalLevels - 1) + '（Δm_I = ±1）';
+  if (I === 0) {
+    infoHtml += '<br><strong style="color:#e74c3c">I = 0 时只有 1 个能级，无跃迁可能，故无 NMR 信号。</strong>';
+  } else if (I === 0.5) {
+    infoHtml += '<br><em style="color:var(--success)">I = 1/2：最简单情形，仅 2 个能级、1 条谱线，是 NMR 首选核。</em>';
+  } else {
+    infoHtml += '<br><em style="color:var(--warning)">I ≥ 1：存在四极矩，可能引起谱线分裂或增宽，解析复杂。</em>';
+  }
+  if (b0 === 0) {
+    infoHtml += '<br><strong style="color:#e74c3c">B₀ = 0：无磁场时所有能级简并，不发生塞曼分裂。</strong>';
+  }
+  document.getElementById('levelInfo').innerHTML = infoHtml;
+}
+
+iSelect.onchange = drawEnergyLevels;
+b0Slider2.oninput = drawEnergyLevels;
+drawEnergyLevels();
+
+// ======= Panel 3: 常见核素对照表 =======
+function getIClass(I) {
+  if (I === 0) return 'zero';
+  if (I === 0.5) return 'half';
+  if (I === 1) return 'integer';
+  return 'quad';
+}
+
+function buildNucleiTable(filter) {
+  const tbody = document.querySelector('#nucleiTable tbody');
+  tbody.innerHTML = '';
+  nuclei.filter(n => {
+    if (filter === 'all') return true;
+    if (filter === '0') return n.I === 0;
+    if (filter === '0.5') return n.I === 0.5;
+    if (filter === 'integer') return n.I === 1;
+    if (filter === 'quad') return n.I >= 1;
+    return true;
+  }).forEach(n => {
+    const tr = document.createElement('tr');
+    const iStr = n.I === 0.5 ? '1/2' : n.I === 1.5 ? '3/2' : n.I === 2.5 ? '5/2' : n.I;
+    const iClass = getIClass(n.I);
+    const iLabel = n.I === 0.5 ? 'I = 1/2' : n.I === 1.5 ? 'I = 3/2' : n.I === 2.5 ? 'I = 5/2' : 'I = ' + n.I;
+    const nmrText = n.I === 0 ? '<span style="color:#95a5a6">无信号</span>' : 
+                   n.I === 0.5 ? '<span style="color:#27ae60;font-weight:600">首选</span>' :
+                   n.I === 1 ? '<span style="color:#f39c12">可用（四极增宽）</span>' :
+                   '<span style="color:#e74c3c">困难（四极矩）</span>';
+    tr.innerHTML = 
+      '<td style="font-weight:700;color:var(--primary)">' + n.sym + '</td>' +
+      '<td style="text-align:center">' + n.Z + '</td>' +
+      '<td style="text-align:center">' + n.N + '</td>' +
+      '<td><span class="i-badge ' + iClass + '">' + iLabel + '</span></td>' +
+      '<td style="text-align:center">' + (n.gamma === 0 ? '—' : n.gamma.toFixed(3)) + '</td>' +
+      '<td style="text-align:center">' + n.abund + '</td>' +
+      '<td style="text-align:center">' + (n.sens === 0 ? '0' : n.sens.toFixed(4)) + '</td>' +
+      '<td>' + nmrText + ' — ' + n.note + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+function filterNuclei(filter, btn) {
+  document.querySelectorAll('#p3 .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildNucleiTable(filter);
+}
+buildNucleiTable('all');
+</script>
+</body>
+</html>
